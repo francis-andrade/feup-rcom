@@ -52,7 +52,7 @@ int main(int argc, char** argv)
     newtio.c_lflag = 0;
 
     newtio.c_cc[VTIME]    = 0;   /* inter-character timer unused */
-    newtio.c_cc[VMIN]     = 5;   /* blocking read until 5 chars received */
+    newtio.c_cc[VMIN]     = 1;   /* blocking read until 1 chars received */
 
 
 
@@ -73,39 +73,34 @@ int main(int argc, char** argv)
     printf("New termios structure set\n");
 
 	
-
-    /*for (i = 0; i < 255; i++) {
-      buf[i] = 'a';
-    }
-    
-    //testing
-    buf[25] = '\n';*/
+    // get to buf
     gets(buf);
-	printf("%s:%d\n", buf, strlen(buf));
-	int i=strlen(buf);
-	for(;i<256;i++){
-		buf[i]=0;	
-	}
-    res = write(fd,buf,255);   
-    printf("%d bytes written\n", res);
- 
-
-  /* 
-    O ciclo FOR e as instruções seguintes devem ser alterados de modo a respeitar 
-    o indicado no guião 
-  */
+    int len = strlen(buf);
+	printf("Inputted: %s:%d\n", buf, len);
+	++len; // \0 included
 
 
-sleep(3);
-   
+	//write buf to fd
+    res = write(fd,buf,len);   
+	printf("Sent: %s:%d\n", buf, len);
+ 	sleep(3);
+
+
+    //receive the message back
+ 	len = 0;
+    while(STOP!=TRUE){
+    	res = read(fd,buf+len,1);
+    	if (buf[len]==0) STOP=TRUE;
+    	++len;
+    }
+	printf("Received: %s:%d\n", buf, len);
+
+		
     if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {
       perror("tcsetattr");
       exit(-1);
     }
 
-
-
-
-    close(fd);
+	close(fd);
     return 0;
 }

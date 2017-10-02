@@ -50,15 +50,13 @@ int main(int argc, char** argv)
     newtio.c_lflag = 0;
 
     newtio.c_cc[VTIME]    = 0;   /* inter-character timer unused */
-    newtio.c_cc[VMIN]     = 1;   /* blocking read until 5 chars received */
-
+    newtio.c_cc[VMIN]     = 1;   /* blocking read until 1 chars received */ //old: 5
 
 
   /* 
     VTIME e VMIN devem ser alterados de forma a proteger com um temporizador a 
     leitura do(s) próximo(s) caracter(es)
   */
-
 
 
     tcflush(fd, TCIOFLUSH);
@@ -70,37 +68,21 @@ int main(int argc, char** argv)
 
     printf("New termios structure set\n");
 
-    //char tempbuf[255];	
+
+		// read the message byte by byte
 		int i = 0;
-		while (STOP==FALSE) {       /* loop for input */
-      res = read(fd,buf + i,1);   /* returns after 5 chars have been input */ //255
-      //buf[res]=0;               /* so we can printf... */
-	  	//else printf(":%s:%d\n", buf, res);
-      if (buf[i] =='\0') STOP = TRUE;	
+		while (STOP==FALSE) {       	/* loop for input */
+    	res = read(fd,buf + i,1);   /* returns after 1 chars have been input */ //old: 255	
+      if (buf[i] == 0) STOP = TRUE;	
 	  	++i;
-      //if (buf[0]=='z') STOP=TRUE;
     }
-    
-    printf(":%s:%d\n", buf, i);
-
- 
-  /* 
-    O ciclo WHILE deve ser alterado de modo a respeitar o indicado no guião 
-  */
+    printf("Received: %s:%d\n", buf, i);
 
 
-		//reenvio dos dados
+		// sent the message back    
+    res = write(fd, buf, i);
+    printf("Sent back: %s:%d\n", buf, i);
     sleep(3);
-    printf("Starting to return the message...\n");
-    
-    
-    
-    res = write(fd, buf, 255);
-    printf("%d bytes written\n", res);
-
-
-
-
 
     tcsetattr(fd,TCSANOW,&oldtio);
     close(fd);
