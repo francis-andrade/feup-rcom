@@ -5,19 +5,25 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #define BAUDRATE B38400
 #define _POSIX_SOURCE 1 /* POSIX compliant source */
 #define FALSE 0
 #define TRUE 1
 
+#define FLAG 0x7e
+#define A 0x03
+#define C_SET 0x03
+#define C_UA 0x07
+
 volatile int STOP=FALSE;
 
 int main(int argc, char** argv)
 {
-    int fd,c, res;
+    int fd, res;
     struct termios oldtio,newtio;
-    char buf[255];
+    unsigned char buf[255];
 
     if ( (argc < 2) || 
   	     ((strcmp("/dev/ttyS0", argv[1])!=0) && 
@@ -68,22 +74,72 @@ int main(int argc, char** argv)
 
     printf("New termios structure set\n");
 
+	
+while(1){
 
-		// read the message byte by byte
-		int i = 0;
-		while (STOP==FALSE) {       	/* loop for input */
-    	res = read(fd,buf + i,1);   /* returns after 1 chars have been input */ //old: 255	
-      if (buf[i] == 0) STOP = TRUE;	
-	  	++i;
-    }
-    printf("Received: %s:%d\n", buf, i);
+	unsigned char ch;
+	unsigned char SET[5];
+	int state = 0;
+	
+	printf("Waiting for message...\n");
+	while (state != 5){
+		read(fd, &ch, 1);	
+		switch(state){
+			case 0:
+				if(ch == FLAG){
+					state = 1;
+					SET[0] = ch;}
+				else state = 0;
+			break;
+			case 1:
+				if (ch == FLAG) state = 1;
+				else if (ch == A){
+					state = 2; 
+					SET[1] = ch;}
+				else state = 0;
+			break;
+			case 2: 
+				if (ch == FLAG) state = 1;
+				else if (ch == C_SET){
+					state = 3;
+					SET[2] = ch;}
+				else state = 0;
+			break;
+			case 3: 
+				if (ch == FLAG) state = 1;
+				else if (ch == (SET[1]^SET[2])){
+					state = 4;
+					SET[3] = ch;}
+				else state = 0; 
+			break;
+			case 4: 
+				if (ch == FLAG){
+					state = 5;
+					SET[4] = ch;}
+				else state = 0;
+			break;		
+		}	
+	}
 
+	printf("Read message successfully:\n  -SET[0] = %X\n  -SET[1] = %X\n  -SET[2] = %X\n  -SET[3] = %X\n  -SET[4] = %X\n",
+		SET[0],SET[1],SET[2],SET[3],SET[4]);
 
-		// sent the message back    
-    res = write(fd, buf, i);
-    printf("Sent back: %s:%d\n", buf, i);
-    sleep(3);
+	//sleep(3);
 
+	printf("Sending acknowledgement message...\n");	
+		
+	//building acknowledgement message
+	SET[0]=FLAG;
+	SET[1]=A;
+	SET[2]=C_UA;
+	SET[3]=SET[1]^SET[2];
+	SET[4]=FLAG;
+	res = write(fd, SET, 5);
+
+	printf("Sent over %d bytes\n",res);
+}
+
+	sleep(3);
     tcsetattr(fd,TCSANOW,&oldtio);
     close(fd);
     return 0;
