@@ -85,6 +85,19 @@ int byte_destuff(unsigned char** buf, int size){
 }
 
 int llopen(unsigned char* port, int status){
+  int fd = open_port(port);
+  unsigned char* frame;
+  if (status == st_RECEIVER){ //receiver
+    while (state_machine_sup() != C_SET);
+    build_frame_sup(A, C_UA, frame);
+    send_frame(frame);
+  } else {                    //sender
+    build_frame_sup(A, C_SET, frame);
+    send_frame(frame);
+    //criar alarme
+    //maq estados
+    //repetir caso preciso
+  }
 
 }
 

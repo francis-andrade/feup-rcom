@@ -15,6 +15,7 @@ struct linklayer{
 
 void byte_stuff(unsigned char** buf, int size);
 void byte_destuff(unsigned char** buf, int size);
+int send_frame(unsigned char* frame);
 int open_port(char* destination);
 int llopen(unsigned char* port, int status);
 int llclose(int fd);

@@ -35,52 +35,78 @@ unsigned char create_BCC(unsigned char * PACKET, int size){
   for (i = 0; i < size; i++){
     res ^= PACKET[i];
   }
-  
+
   return res;
 }
 
-int state_machine_sup(unsigned char* SET){
-  unsigned char ch;
-	int state = 0;
-	printf("Waiting for message...\n");
-	while (state != 5){
+int state_machine(unsigned char* SET){
+  unsigned char ch, datatmp[255];
+	State state = S_START;
+  int i = 0;
+  State_Frame sf;
+  sf.success = 1;
+
+	while (state != S_END){
 		read(fd, &ch, 1);
 		switch(state){
-			case 0:
+
+      case S_START:
 				if(ch == FLAG){
-					state = 1;
-					SET[0] = ch;}
-				else state = 0;
+					state = S_FLAG;}
+				else state = S_START;
 			break;
-			case 1:
-				if (ch == FLAG) state = 1;
+
+			case S_FLAG:
+				if (ch == FLAG) state = S_FLAG;
 				else if (ch == A){
-					state = 2;
-					SET[1] = ch;}
-				else state = 0;
+          sf.address = ch;
+					state = S_ADDRESS;}
+				else state = S_START;
+      break;
+
+      case S_ADDRESS:
+				if (ch == FLAG) state = S_FLAG;
+				else if (ch == C_SET || ch == C_DISC || ch == C_UA || ch == C_RR1 ||
+            ch == C_RR0 || ch == C_REJ1 || ch == C_REJ0 || ch == C_DATA0 || ch == C_DATA1){
+					state = S_CONTROL;
+					sf.control = ch;}
+        else state = S_START;
 			break;
-			case 2:
-				if (ch == FLAG) state = 1;
-				else if (ch == C_SET || ch == C_DISC || ch == C_UA || ch == C_RR1 || ch == C_RR0 || ch == C_REJ1 || ch == C_REJ0){
-					state = 3;
-					SET[2] = ch;}
-				else state = 0;
-			break;
-			case 3:
-				if (ch == FLAG) state = 1;
-				else if (ch == (SET[1]^SET[2])){
-					state = 4;
-					SET[3] = ch;}
-				else state = 0;
-			break;
-			case 4:
+
+      case S_CONTROL:
+				if (ch == FLAG) state = S_FLAG;
+				else if (ch == (sf.address^sf.control)){
+          if (control == C_DATA0 || control == C_DATA1){
+              state = S_DN;
+          } else state = S_BCC1;
+        } else {
+          sf.success = 0;
+          return sf;
+        }
+      break;
+
+			case S_BCC1:
 				if (ch == FLAG){
-					state = 5;
-					SET[4] = ch;}
-				else state = 0;
+					state = S_END;}
+				else state = S_START;
 			break;
+
+      case S_DN:
+        datatmp[i] = ch;
+        if (ch == FLAG){
+          if (datatmp[i-1] == create_BCC(datatmp, i-2)){
+            sf.size = i-2;
+            sf.data = (unsigned char*) malloc(sf.size);
+            state = S_END;
+          } else {
+            sf.success = 0;
+            return sf;
+          }
+        } else i++;
+      break;
+
 		}
 	}
 
-	return SET[2];
+	return sf;
 }
