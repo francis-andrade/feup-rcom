@@ -4,6 +4,8 @@
 #include <termios.h>
 #include <stdio.h>
 #include <unistd.h>
+#include "applicationlayer.h"
+#include "datalink.h"
 
 void invalid_parameters(){
   printf("Usage:\tnserial SerialPort receiver OR nserial SerialPort sender filename
@@ -16,20 +18,22 @@ void invalid_parameters(){
 int main(int argc, char** argv){
 
   unsigned char buf[255];
-  int ROLE;
+  applicationlayer app;
 
   if (argc > 1 && ((strcmp("/dev/ttyS0", argv[1]) == 0) || (strcmp("/dev/ttyS1", argv[1]) == 0))){
     if((argc == 3 && (strcmp("receiver", argv[2])!=0)) && )
-      ROLE = 1;
+      app.status = st_RECEIVER;
     else if((argc == 4 && (strcmp("sender", argv[2])!=0)))
-      ROLE = 0;
+      app.status = st_TRANSMITTER;
     else invalid_parameters();
   } else invalid_parameters();
 
-  if (ROLE == 0){
-    sender(argv[3]);
+  app.filedescriptor = open_port(argv[1]);
+
+  if (app.status == st_TRANSMITTER){
+    sender(app, argv[3]);
   } else {
-    receiver();
+    receiver(app);
   }
 
   return 0;
