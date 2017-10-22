@@ -45,9 +45,11 @@ int state_machine(unsigned char* SET){
   int i = 0;
   State_Frame sf;
   sf.success = 1;
+  int n_chars;
 
 	while (state != S_END){
-		read(fd, &ch, 1);
+		if (read(fd, &ch, 1)<=0)
+      continue;
 		switch(state){
 
       case S_START:

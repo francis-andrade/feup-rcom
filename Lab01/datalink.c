@@ -3,7 +3,7 @@
 struct termios oldtio, newtio;
 
 int open_port(char* destination){
-    int fd = open(destination, O_RDWR | O_NOCTTY );
+    int fd = open(destination, O_RDWR | O_NOCTTY | O_NONBLOCK);
     if (fd <0) { perror(destination); exit(-1); }
 
 	//saving current port settings

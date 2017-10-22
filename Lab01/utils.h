@@ -31,6 +31,8 @@ typedef struct{
   int size;
 } State_Frame;
 
+typedef void (*func_ptr)(void);
+
 int state_machine();
 int build_frame_sup(unsigned char address, unsigned char control, unsigned char * FRAME);
 int build_frame_data(unsigned char address, unsigned char control, unsigned char * FRAME, unsigned char * PACKET);

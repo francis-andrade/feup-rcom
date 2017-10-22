@@ -16,8 +16,6 @@ void invalid_parameters(){
 }
 
 int main(int argc, char** argv){
-
-  unsigned char buf[255];
   applicationlayer app;
 
   if (argc > 1 && ((strcmp("/dev/ttyS0", argv[1]) == 0) || (strcmp("/dev/ttyS1", argv[1]) == 0))){
