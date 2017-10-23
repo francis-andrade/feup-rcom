@@ -39,7 +39,7 @@ unsigned char create_BCC(unsigned char * PACKET, int size){
   return res;
 }
 
-int state_machine(unsigned char* SET){
+State_Frame state_machine(unsigned char* SET){
   unsigned char ch, datatmp[255];
 	State state = S_START;
   int i = 0;

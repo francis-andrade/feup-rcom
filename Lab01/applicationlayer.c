@@ -48,6 +48,11 @@ int sender(Applicationlayer app, const char* port, const char* filename){
   //TODO send packet
 }
 
+int receiver(Applicationlayer app){
+  int fd = llopen(port, RECEIVER);
+}
+
+
 int create_control_packet(unsigned char * packet, const char* filename, const char control, size_t filesize){
   int i = 0, j;
   packet[i++] = control;
@@ -73,6 +78,3 @@ int create_control_packet(unsigned char * packet, const char* filename, const ch
   return 0;
 }
 
-int receiver(Applicationlayer app){
-    int fd = llopen(port, RECEIVER);
-}

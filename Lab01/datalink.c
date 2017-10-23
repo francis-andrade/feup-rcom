@@ -33,34 +33,34 @@ int open_port(char* destination){
 	return fd;
 }
 
-void byte_stuff(unsigned char** buf, int size){
-    int i, newsize = size;
-    unsigned char * res;
+void byte_stuff(unsigned char **buf, int size){
+  int i, newsize = size;
+  unsigned char *res;
 
-
-    for (i = 0; i < size; i++){
-      if (((*buf)[i] == FLAG) || ((*buf)[i] == ESCAPE))
-        newsize++;
-    }
-
-    res = (unsigned char*) malloc(newsize);
-    int j = 0;
-    for (i = 0; i < size; i++){
-      if ((*buf)[i] == FLAG){
-        res[j] = ESCAPE;
-        j++;
-        res[j] = FLAG_E;
-      } else if ((*buf)[i] == ESCAPE){
-        res[j] = ESCAPE;
-        j++;
-        res[j] = ESCAPE_E;
-      } else res[j] = (*buf)[i];
-      ++j;
-    }
-
-    free(*buf);
-    *buf = res;
+  for (i = 0; i < size; i++){
+    if (((*buf)[i] == FLAG) || ((*buf)[i] == ESCAPE))
+      newsize++;
   }
+
+  res = (unsigned char *)malloc(newsize);
+  int j = 0;
+  for (i = 0; i < size; i++){
+    if ((*buf)[i] == FLAG){
+      res[j] = ESCAPE;
+      j++;
+      res[j] = FLAG_E;
+    } else if ((*buf)[i] == ESCAPE) {
+      res[j] = ESCAPE;
+      j++;
+      res[j] = ESCAPE_E;
+    } else
+      res[j] = (*buf)[i];
+    ++j;
+  }
+
+  free(*buf);
+  *buf = res;
+}
 
 int byte_destuff(unsigned char** buf, int size){
   unsigned char * res;
@@ -84,16 +84,29 @@ int byte_destuff(unsigned char** buf, int size){
   return j;
 }
 
+int send_frame(unsigned char* frame, int fd){
+  if(frame[2] == C_DATA0 || frame[2] == C_DATA1){ //data frame
+    int i = 1;
+    while(frame[i]!=FLAG)
+      i++;
+    write(fd, frame, i+1);
+  } else {                                        //supervision frame
+    write(fd, frame, 5);
+  }
+}
+
 int llopen(unsigned char* port, int status){
   int fd = open_port(port);
   unsigned char* frame;
   if (status == st_RECEIVER){ //receiver
-    while (state_machine_sup() != C_SET);
+    State_Frame sf;
+    do sf = state_machine(frame);
+      while (sf.success && sf.control == C_SET);
     build_frame_sup(A, C_UA, frame);
-    send_frame(frame);
+    send_frame(frame, fd);
   } else {                    //sender
     build_frame_sup(A, C_SET, frame);
-    send_frame(frame);
+    send_frame(frame, fd);
 
     //TODO:
     //criar alarme
