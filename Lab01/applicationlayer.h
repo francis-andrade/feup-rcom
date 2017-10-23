@@ -1,3 +1,8 @@
+#include "datalink.h"
+#include <stdio.h>  /* printf */
+#include <stdlib.h> /* fopen, fseek, ... */
+#include <string.h>
+
 #define AL_C_DATA 1
 #define AL_C_START 2
 #define AL_C_END 3
@@ -17,3 +22,5 @@ typedef struct {
 int sender(Applicationlayer app, const char* device_name);
 
 int receiver(Applicationlayer app);
+
+int create_control_packet(unsigned char * packet, const char* filename, char control, size_t filesize);  

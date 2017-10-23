@@ -1,8 +1,4 @@
 #include "applicationlayer.h"
-#include "datalink.h"
-#include <stdio.h>  /* printf */
-#include <stdlib.h> /* fopen, fseek, ... */
-#include <string.h>
 
 int sender(Applicationlayer app, const char* port, const char* filename){
   int i, j;
@@ -25,25 +21,8 @@ int sender(Applicationlayer app, const char* port, const char* filename){
   unsigned char packet[MAX_SIZE];
 
   // send START packet
-  i = 0;
-  // 1st TLV: filesize
-    packet[i++] = AL_C_START; // control = 1
-
-    packet[i++] = AL_T_SIZE;
-    packet[i++] = sizeof(size_t);
-    temp = filesize;
-
-    for (j=0; j<sizeof(size_t); ++j, ++i){
-      packet[i+j] = temp%256;
-      temp = temp/256;
-    }
-  // 2nd TLV: filename
-    packet[i++] = AL_T_NAME;
-    packet[i++] = strlen(filename);
-
-    for (j=0; j<strlen(filename); ++j, ++i){
-      packet[i+j] = filename[j];
-    }
+  create_control_packet(packet, filename, AL_C_START, filesize);
+  //TODO send packet
 
   // send all other packets
   int sequence_no; // TODO maybe from LinkLayer Struct
@@ -65,8 +44,33 @@ int sender(Applicationlayer app, const char* port, const char* filename){
     } while (res<0);
   }
 
-  // send END packet
-  //TODO
+  create_control_packet(packet, filename, AL_C_END, filesize);
+  //TODO send packet
+}
+
+int create_control_packet(unsigned char * packet, const char* filename, const char control, size_t filesize){
+  int i = 0, j;
+  packet[i++] = control;
+
+  //1st TLV - file size
+  packet[i++] = AL_T_SIZE;
+  packet[i++] = sizeof(size_t);
+  size_t temp = filesize;
+
+  for (j=0; j<sizeof(size_t); ++j, ++i){
+    packet[i+j] = temp%256;//TODO isto nao vai dar borrada? nao devia ser packet[i] apenas?
+    temp = temp/256;
+  }
+
+  //2nd TLV - filename
+  packet[i++] = AL_T_NAME;
+  packet[i++] = strlen(filename);
+
+  for (j=0; j<strlen(filename); ++j, ++i){
+    packet[i+j] = filename[j];//TODO isto tambem nao vai dar erro?
+  }
+
+  return 0;
 }
 
 int receiver(Applicationlayer app){

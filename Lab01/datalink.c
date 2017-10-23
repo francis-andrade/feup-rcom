@@ -94,6 +94,8 @@ int llopen(unsigned char* port, int status){
   } else {                    //sender
     build_frame_sup(A, C_SET, frame);
     send_frame(frame);
+
+    //TODO:
     //criar alarme
     //maq estados
     //repetir caso preciso
