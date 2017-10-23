@@ -63,7 +63,7 @@ int create_control_packet(unsigned char * packet, const char* filename, const ch
   size_t temp = filesize;
 
   for (j=0; j<sizeof(size_t); ++j, ++i){
-    packet[i+j] = temp%256;//TODO isto nao vai dar borrada? nao devia ser packet[i] apenas?
+    packet[i+j] = temp%256;//TODO: isto nao vai dar borrada? nao devia ser packet[i] apenas?
     temp = temp/256;
   }
 
@@ -72,7 +72,7 @@ int create_control_packet(unsigned char * packet, const char* filename, const ch
   packet[i++] = strlen(filename);
 
   for (j=0; j<strlen(filename); ++j, ++i){
-    packet[i+j] = filename[j];//TODO isto tambem nao vai dar erro?
+    packet[i+j] = filename[j];//TODO: isto tambem nao vai dar erro?
   }
 
   return 0;

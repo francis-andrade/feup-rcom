@@ -33,7 +33,19 @@ int open_port(char* destination){
 	return fd;
 }
 
+int close_port(int fd){
+    // reset TC to old config
+    if (tcsetattr(fd,TCSANOW,&oldtio) == -1) {
+      perror("tcsetattr");
+      exit(-1);//TODO averiguar se podemos ter o -1 aqui
+    }
+    // close
+    close(fd);
+    return 0;
+}
+
 void byte_stuff(unsigned char **buf, int size){
+  //TODO assegurar que também podemos incluir o bcc aqui
   int i, newsize = size;
   unsigned char *res;
 
@@ -63,10 +75,10 @@ void byte_stuff(unsigned char **buf, int size){
 }
 
 int byte_destuff(unsigned char** buf, int size){
+  //TODO assegurar que também podemos incluir o bcc aqui
   unsigned char * res;
   int i, newsize = size;
   int j = 0;
-
 
   for (i = 0; i < size; i++){
     if((*buf)[i] == ESCAPE){
@@ -117,7 +129,17 @@ int llopen(unsigned char* port, int status){
 }
 
 int llclose(int fd){
+    unsigned char* frame;
+    State_Frame sf;
+    build_frame_sup(A, C_DISC, frame);
+    send_frame(frame, fd);
+    
+    //TODO implementar alarme e repeticoes aqui também
+    
+    do sf=state_machine(frame);
+      while(sf.success && sf.control == C_UA);
 
+    return close_port(fd);
 }
 
 int llwrite(int fd, char* buffer, int length){
