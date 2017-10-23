@@ -154,7 +154,12 @@ int llwrite(int fd, char* buffer, int length){
 int llread(int fd, char* buffer){
   State_Frame sf;
   while(1){
-    sf = state_machine(buffer, fd)
+    sf = state_machine(buffer, fd);
+
+    
+
+
+
   }
 //TODO ler trama
 //TODO enviar RR/REJ
