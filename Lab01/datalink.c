@@ -112,8 +112,8 @@ int llopen(unsigned char* port, int status){
   unsigned char* frame;
   if (status == st_RECEIVER){ //receiver
     State_Frame sf;
-    do sf = state_machine(frame);
-      while (sf.success && sf.control == C_SET);
+    do sf = state_machine(frame, fd);
+      while (!sf.success || sf.control != C_SET);
     build_frame_sup(A, C_UA, frame);
     send_frame(frame, fd);
   } else {                    //sender
@@ -136,16 +136,26 @@ int llclose(int fd){
     
     //TODO implementar alarme e repeticoes aqui também
     
-    do sf=state_machine(frame);
-      while(sf.success && sf.control == C_UA);
+    do {
+      sf=state_machine(frame, fd);
+    } while(!sf.success || sf.control != C_UA);
 
     return close_port(fd);
 }
 
 int llwrite(int fd, char* buffer, int length){
-
+//TODO obter trama
+//TODO enviar trama
+//TODO alarme+timeout
+//TODO esperar pelo RR/REJ
+//TODO caso REJ, reenviar de acordo com o pedido
 }
 
 int llread(int fd, char* buffer){
-
+  State_Frame sf;
+  while(1){
+    sf = state_machine(buffer, fd)
+  }
+//TODO ler trama
+//TODO enviar RR/REJ
 }

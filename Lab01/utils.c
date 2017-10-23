@@ -39,7 +39,7 @@ unsigned char create_BCC(unsigned char * PACKET, int size){
   return res;
 }
 
-State_Frame state_machine(unsigned char* SET){
+State_Frame state_machine(unsigned char* SET, int fd){
   unsigned char ch, datatmp[255];
 	State state = S_START;
   int i = 0;
@@ -81,10 +81,7 @@ State_Frame state_machine(unsigned char* SET){
           if (control == C_DATA0 || control == C_DATA1){
               state = S_DN;
           } else state = S_BCC1;
-        } else {
-          sf.success = 0;
-          return sf;
-        }
+        } else state = S_START; //ignorar trama
       break;
 
 			case S_BCC1:

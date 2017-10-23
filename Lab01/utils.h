@@ -33,7 +33,7 @@ typedef struct{
 
 typedef void (*func_ptr)(void);
 
-State_Frame state_machine(unsigned char* SET);
+State_Frame state_machine(unsigned char* SET, fd);
 int build_frame_sup(unsigned char address, unsigned char control, unsigned char * FRAME);
 int build_frame_data(unsigned char address, unsigned char control, unsigned char * FRAME, unsigned char * PACKET);
 unsigned char create_BCC(unsigned char * PACKET, int size);
