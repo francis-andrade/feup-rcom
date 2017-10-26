@@ -1,3 +1,6 @@
+#ifndef DATALINK_H
+#define DATALINK_H
+
 #include <termios.h>
 #include "utils.h"
 #include "applicationlayer.h"
@@ -22,3 +25,5 @@ int llopen(unsigned char* port, int status);
 int llclose(int fd);
 int llwrite(int fd, char* buffer, int length);
 int llread(int fd, char* buffer);
+
+#endif
