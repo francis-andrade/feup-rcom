@@ -138,8 +138,10 @@ int llclose(int fd){
     
     do {
       sf=state_machine(frame, fd);
-    } while(!sf.success || sf.control != C_UA);
-
+    } while(!sf.success || sf.control != C_DISC);
+    
+    build_frame_sup(A, C_UA, frame);
+    send_frame(frame, fd);
     return close_port(fd);
 }
 
