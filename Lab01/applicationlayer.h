@@ -23,8 +23,8 @@ typedef struct {
   int status;
 } Applicationlayer;
 
-int sender(Applicationlayer app, const char* port, const char* filename);
 
+int sender(Applicationlayer app, const char* port, const char* filename);
 int receiver(Applicationlayer app, const char* port);
 
 int create_control_packet(unsigned char * packet, const char* filename, char control, size_t filesize); 

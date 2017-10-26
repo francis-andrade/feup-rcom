@@ -27,7 +27,7 @@ int send_frame(unsigned char* frame, int fd);
 int open_port(const char* destination);
 int close_port(int fd);
 int llopen(const char* port, int status);
-int llclose(int fd);
+int llclose(int fd, int status);
 int llwrite(int fd, unsigned char* buffer, int length);
 int llread(int fd, unsigned char* buffer);
 
