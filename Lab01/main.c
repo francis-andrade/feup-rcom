@@ -1,17 +1,14 @@
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <termios.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/types.h>
 #include "applicationlayer.h"
 #include "datalink.h"
 
 void invalid_parameters(){
-  printf("Usage:\tnserial SerialPort receiver OR nserial SerialPort sender filename
-          \n\tex: nserial /dev/ttyS1 receiver
-          \n\tex: nserial /dev/ttyS0 sender pinguim.gif"
-        );
+  printf("Usage:\tnserial SerialPort receiver OR nserial SerialPort sender filename \n\tex: nserial /dev/ttyS1 receiver \n\tex: nserial /dev/ttyS0 sender pinguim.gif");
   exit(1);
 }
 
@@ -31,7 +28,7 @@ int main(int argc, char** argv){
   if (app.status == st_TRANSMITTER){
     sender(app, argv[1], argv[3]);
   } else {
-    receiver(app);
+    receiver(app, argv[1]);
   }
 
   return 0;

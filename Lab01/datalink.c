@@ -145,7 +145,7 @@ int llclose(int fd){
     return close_port(fd);
 }
 
-int llwrite(int fd, char* buffer, int length){
+int llwrite(int fd, unsigned char* buffer, int length){
 //TODO obter trama
 //TODO enviar trama
 //TODO alarme+timeout
@@ -153,7 +153,7 @@ int llwrite(int fd, char* buffer, int length){
 //TODO caso REJ, reenviar de acordo com o pedido
 }
 
-int llread(int fd, char* buffer){
+int llread(int fd, unsigned char* buffer){
   State_Frame sf;
   while(1){
     sf = state_machine(buffer, fd);

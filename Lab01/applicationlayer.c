@@ -1,7 +1,7 @@
 #include "applicationlayer.h"
 
 int sender(Applicationlayer app, const char* port, const char* filename){//TODO como e suposto o main mandar o port?
-  int i, j, res, fd;
+  int i, j, res, fd, packet_size;
   size_t filesize, chunk_size;
 
   // open serial bus fd
@@ -21,33 +21,33 @@ int sender(Applicationlayer app, const char* port, const char* filename){//TODO 
   unsigned char packet[MAX_SIZE];
 
   // send START packet (timeouts are accounted for within llwrite, using timeout_flag)
-  create_control_packet(packet, filename, AL_C_START, filesize);
+  packet_size = create_control_packet(packet, filename, AL_C_START, filesize);
   do {
-    res = llwrite(packet, fd);
+    res = llwrite(fd, packet, packet_size);
   } while (res<0);
 
   // send all other packets
   int sequence_no; // TODO maybe from LinkLayer Struct
   while (fread(buffer, chunk_size, 1, fp) > 0){ // read a chunk of the file
-    create_data_packet(sequence_no, chunk_size, packet, buffer)
+    packet_size = create_data_packet(sequence_no, chunk_size, packet, buffer);
     do {
-      res = llwrite(packet, fd);       
+      res = llwrite(fd, packet, packet_size);       
     } while (res<0);
   }
   
   //send END packet
-  create_control_packet(packet, filename, AL_C_END, filesize);
+  packet_size = create_control_packet(packet, filename, AL_C_END, filesize);
   do {
-    res = llwrite(packet, fd);
+    res = llwrite(fd, packet, packet_size);
   } while (res<0);
 
   return 0;
 }
 
-int receiver(Applicationlayer app){
+int receiver(Applicationlayer app, char* port){
   int fd = llopen(port, RECEIVER);
 
-  
+
 
 }
 
@@ -61,7 +61,7 @@ int create_control_packet(unsigned char * packet, const char* filename, const ch
   size_t temp = filesize;
 
   for (j=0; j<sizeof(size_t); ++j, ++i){
-    packet[i+j] = temp%256;//TODO: isto nao vai dar borrada? nao devia ser packet[i] apenas?
+    packet[i] = temp%256;//TODO: isto nao vai dar borrada? nao devia ser packet[i] apenas?
     temp = temp/256;
   }
 
@@ -70,10 +70,10 @@ int create_control_packet(unsigned char * packet, const char* filename, const ch
   packet[i++] = strlen(filename);
 
   for (j=0; j<strlen(filename); ++j, ++i){
-    packet[i+j] = filename[j];//TODO: isto tambem nao vai dar erro?
+    packet[i] = filename[j];
   }
 
-  return 0;
+  return i;
 }
 
 int create_data_packet(int sequence_no, int chunk_size, unsigned char *packet, unsigned char *buffer){
@@ -84,7 +84,9 @@ int create_data_packet(int sequence_no, int chunk_size, unsigned char *packet, u
   packet[3] = chunk_size % 256;  // l1
 
   // packet body
-  int j = 4;
-  for (i = 0; i < chunk_size; ++i)
+  int i, j = 4;
+  for (i = 0; i < chunk_size; ++i, ++j)
     packet[j] = buffer[i];
+
+  return j;
 }

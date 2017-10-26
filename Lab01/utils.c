@@ -78,7 +78,7 @@ State_Frame state_machine(unsigned char* SET, int fd){
       case S_CONTROL:
 				if (ch == FLAG) state = S_FLAG;
 				else if (ch == (sf.address^sf.control)){
-          if (control == C_DATA0 || control == C_DATA1){
+          if (sf.control == C_DATA0 || sf.control == C_DATA1){
               state = S_DN;
           } else state = S_BCC1;
         } else state = S_START; //ignorar trama
