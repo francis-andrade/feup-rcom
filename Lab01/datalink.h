@@ -1,6 +1,9 @@
 #ifndef DATALINK_H
 #define DATALINK_H
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <termios.h>
 #include "utils.h"
 #include "applicationlayer.h"

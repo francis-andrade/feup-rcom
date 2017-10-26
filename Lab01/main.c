@@ -1,9 +1,9 @@
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <termios.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <sys/types.h>
 #include "applicationlayer.h"
 #include "datalink.h"
 
