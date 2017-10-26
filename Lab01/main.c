@@ -29,7 +29,7 @@ int main(int argc, char** argv){
   app.filedescriptor = open_port(argv[1]);
 
   if (app.status == st_TRANSMITTER){
-    sender(app, argv[3]);
+    sender(app, argv[1], argv[3]);
   } else {
     receiver(app);
   }

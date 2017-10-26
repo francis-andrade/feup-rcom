@@ -1,6 +1,5 @@
 #include "alarm.h"
 
-
 #define TIMEOUT_SECS 3 // TODO change this to linklayer's timeout
 #define MAX_TIMEOUTS 3
 volatile int n_timeouts = 0;
@@ -13,11 +12,11 @@ void alarm_handler(int signal){
   n_timeouts++;
 
   if (n_timeouts < max_timeouts){
-    printf("Timeout! Resending frame..")
-        timeoutFlag = 1;
+    printf("Timeout! Resending frame..");
+    timeoutFlag = 1;
     alarm(timeout);
   } else {
-    printf("Timeout x3! Exiting..")
+    printf("Timeout x3! Exiting..");
   }
 }
 
