@@ -1,6 +1,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <stdlib.h>
+
 //  Frames
 #define ESCAPE 0x7d
 #define ESCAPE_E 0x5d
@@ -23,7 +25,7 @@
 #define PC_END 0x03
 
 typedef enum{
-  S_START, S_FLAG, S_ADDRESS, S_CONTROL, S_BCC1, S_END, S_DN, S_BCC2
+  S_START, S_FLAG, S_ADDRESS, S_CONTROL, S_BCC1, S_END, S_DN
 } State;
 
 typedef struct{

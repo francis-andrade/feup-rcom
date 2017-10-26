@@ -5,6 +5,7 @@
 #include <stdio.h>  /* printf */
 #include <stdlib.h> /* fopen, fseek, ... */
 #include <string.h>
+#include <stddef.h>
 
 #define AL_C_DATA 1
 #define AL_C_START 2

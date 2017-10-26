@@ -2,7 +2,7 @@
 
 struct termios oldtio, newtio;
 
-int open_port(char* destination){
+int open_port(const char* destination){
     int fd = open(destination, O_RDWR | O_NOCTTY | O_NONBLOCK);
     if (fd <0) { perror(destination); exit(-1); }
 
@@ -44,7 +44,7 @@ int close_port(int fd){
     return 0;
 }
 
-void byte_stuff(unsigned char **buf, int size){
+void byte_stuff(unsigned char** buf, int size){
   //TODO assegurar que também podemos incluir o bcc aqui
   int i, newsize = size;
   unsigned char *res;
@@ -74,7 +74,7 @@ void byte_stuff(unsigned char **buf, int size){
   *buf = res;
 }
 
-int byte_destuff(unsigned char** buf, int size){
+void byte_destuff(unsigned char** buf, int size){
   //TODO assegurar que também podemos incluir o bcc aqui
   unsigned char * res;
   int i, newsize = size;
@@ -107,10 +107,10 @@ int send_frame(unsigned char* frame, int fd){
   }
 }
 
-int llopen(unsigned char* port, int status){
+int llopen(const char* port, int status){
   int fd = open_port(port);
   unsigned char* frame;
-  if (status == st_RECEIVER){ //receiver
+  if (status == RECEIVER){ //receiver
     State_Frame sf;
     do sf = state_machine(frame, fd);
       while (!sf.success || sf.control != C_SET);

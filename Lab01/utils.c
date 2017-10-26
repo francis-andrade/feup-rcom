@@ -45,7 +45,6 @@ State_Frame state_machine(unsigned char* SET, int fd){
   int i = 0;
   State_Frame sf;
   sf.success = 1;
-  int n_chars;
 
 	while (state != S_END){
 		if (read(fd, &ch, 1)<=0)
@@ -103,6 +102,9 @@ State_Frame state_machine(unsigned char* SET, int fd){
           }
         } else i++;
       break;
+
+      default:
+      return sf;
 
 		}
 	}

@@ -1,7 +1,7 @@
 #include "applicationlayer.h"
 
-int sender(Applicationlayer app, const char* port, const char* filename){//TODO como e suposto o main mandar o port?
-  int i, j, res, fd, packet_size;
+int sender(Applicationlayer app, const char* port, const char* filename){
+  int res, fd, packet_size;
   size_t filesize, chunk_size;
 
   // open serial bus fd
@@ -44,7 +44,7 @@ int sender(Applicationlayer app, const char* port, const char* filename){//TODO 
   return 0;
 }
 
-int receiver(Applicationlayer app, char* port){
+int receiver(Applicationlayer app, const char* port){
   int fd = llopen(port, RECEIVER);
 
 
