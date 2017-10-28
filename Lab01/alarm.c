@@ -1,18 +1,20 @@
 #include "alarm.h"
 
-volatile int n_timeouts = 0;
-volatile int timeoutFlag = 0;
+// timeout flag
+int timeout_flag = 0;
+// durations and tries initialized in arm_alarm()
+static int s_duration = 0;
+static int s_retries = 0;
+// count iterated in alarm_handler()
+static int s_count = 0;
 
 void alarm_handler(int signal){
-  if (signal != SIGALRM)
-    return;
+  s_count++;
 
-  n_timeouts++;
-
-  if (n_timeouts < MAX_TIMEOUTS){
+  if (s_count < s_retries){
     printf("Timeout! Resending frame..");
-    timeoutFlag = 1;
-    alarm(TIMEOUT_SECS);
+    timeout_flag = 1;
+    alarm(s_duration);
   } else {
     printf("Timeout x3! Exiting..");
   }
@@ -23,14 +25,18 @@ void init_alarm(){
   action.sa_handler = alarm_handler;
   sigemptyset(&action.sa_mask);
   action.sa_flags = 0;
-
+  //set alarm action
   sigaction(SIGALRM, &action, NULL);
 }
 
-void arm_alarm(function){
-  n_timeouts = 0;
-  timeoutFlag = 0;
-  alarm(TIMEOUT_SECS);
+void arm_alarm(int duration, int retries){
+  // init flag + statics
+  timeout_flag = 0;
+  s_duration = duration;
+  s_retries = retries;
+  s_count = 0;
+  // arm it!
+  alarm(s_duration);
 }
 
 void disarm_alarm(){

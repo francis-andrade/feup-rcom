@@ -39,18 +39,19 @@ unsigned char create_BCC(unsigned char * PACKET, int size){
   return res;
 }
 
-State_Frame state_machine(unsigned char* SET, int fd){
+State_Frame state_machine(int fd){
   unsigned char ch, datatmp[255];
 	State state = S_START;
   int i = 0;
   State_Frame sf;
   sf.success = 1;
 
-	while (state != S_END){
+  //run until we reach the frame's end or until being timed-out
+	while (state != S_END && !timeout_flag){
 		if (read(fd, &ch, 1)<=0)
       continue;
-		switch(state){
 
+		switch(state){
       case S_START:
 				if(ch == FLAG){
 					state = S_FLAG;}

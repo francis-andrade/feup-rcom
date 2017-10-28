@@ -109,23 +109,70 @@ int send_frame(unsigned char* frame, int fd){
 
 int llopen(const char* port, int status){
   int fd = open_port(port);
-  unsigned char* frame;
-  if (status == RECEIVER){ //receiver
-    State_Frame sf;
-    do sf = state_machine(frame, fd);
-      while (!sf.success || sf.control != C_SET);
-    build_frame_sup(A, C_UA, frame);
-    send_frame(frame, fd);
-  } else {                    //sender
-    build_frame_sup(A, C_SET, frame);
-    send_frame(frame, fd);
+  State_Frame sf;
+  unsigned char* t_frame;
 
-    //TODO:
-    //criar alarme
-    //maq estados
-    //repetir caso preciso
+  if (status == RECEIVER){ //receiver
+    //wait for the C_SET frame
+    do sf = state_machine(fd);
+      while (!sf.success || sf.control != C_SET);
+
+    //send back a C_UA frame
+    build_frame_sup(A, C_UA, t_frame);
+    send_frame(t_frame, fd);
+
+    //done.
+    return 0;
+  } 
+  else { //sender
+    //send the C_SET frame
+    build_frame_sup(A, C_SET, t_frame);
+    send_frame(t_frame, fd);
+  
+    //init alarme
+    arm_alarm(TIMEOUT_DURATION, TIMEOUT_TRIES);
+
+    //wait for the C_UA frame
+    do sf = state_machine(fd);
+      while (!sf.success || sf.control != C_SET);
+
+    //shutdown alarme
+    disarm_alarm();
+
+    //done.
+    return 0;
   }
 
+  //oops! something went wrong.
+  return -1;
+}
+
+int llwrite(int fd, unsigned char* buffer, int length){
+  unsigned char frame[MAX_SIZE];
+  
+  //TODO obter trama
+  //TODO enviar trama
+  //TODO alarme+timeout
+  //TODO esperar pelo RR/REJ
+  //TODO caso REJ, reenviar de acordo com o pedido
+}
+
+int llread(int fd, unsigned char* buffer){
+  State_Frame sf;
+  unsigned char frame[MAX_SIZE];
+  //TODO se receber um set aquando da primeira execucao, mandar ua para reestabelecer execucao
+  //TODO fazer byte unstuffing e mandar para o buffer
+
+  while(1){
+    sf = state_machine(fd);
+  }
+
+  byte_destuff(frame, sf.size);
+
+
+
+//TODO ler trama
+//TODO enviar RR/REJ
 }
 
 int llclose(int fd, int status){
@@ -139,7 +186,7 @@ int llclose(int fd, int status){
       //TODO implementar alarme e repeticoes aqui também
 
       do{
-        sf = state_machine(frame, fd);
+        sf = state_machine(fd);
       } while (!sf.success || sf.control != C_DISC);
 
       build_frame_sup(A, C_UA, frame);
@@ -150,37 +197,10 @@ int llclose(int fd, int status){
       //TODO alarme
 
       do{
-        sf = state_machine(frame, fd);
+        sf = state_machine(fd);
       } while (!sf.success || sf.control != C_UA);
     }
     tcsetattr(fd,TCSANOW,&oldtio); 
     return close_port(fd);
 }
 
-int llwrite(int fd, unsigned char* buffer, int length){
-  unsigned char frame[MAX_SIZE];
-  
-//TODO obter trama
-//TODO enviar trama
-//TODO alarme+timeout
-//TODO esperar pelo RR/REJ
-//TODO caso REJ, reenviar de acordo com o pedido
-}
-
-int llread(int fd, unsigned char* buffer){
-  State_Frame sf;
-  unsigned char frame[MAX_SIZE];
-  //TODO se receber um set aquando da primeira execucao, mandar ua para reestabelecer execucao
-  //TODO fazer byte unstuffing e mandar para o buffer
-
-  while(1){
-    sf = state_machine(frame, fd);
-  }
-
-  byte_destuff(frame, sf.size);
-
-
-
-//TODO ler trama
-//TODO enviar RR/REJ
-}

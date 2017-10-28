@@ -1,16 +1,15 @@
 #ifndef ALARM_H
 #define ALARM_H
 
-#include "utils.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <signal.h>
 
-#define TIMEOUT_SECS 3 // TODO change this to linklayer's timeout
-#define MAX_TIMEOUTS 3
+int timeout_flag;
 
 void init_alarm();
-void arm_alarm(function);
+void arm_alarm(int duration, int retries);
 void disarm_alarm();
+
 
 #endif

@@ -1,5 +1,6 @@
 #include "applicationlayer.h"
 
+
 int sender(Applicationlayer app, const char* port, const char* filename){
   int res, fd, packet_size;
   size_t filesize, chunk_size;
@@ -46,24 +47,23 @@ int sender(Applicationlayer app, const char* port, const char* filename){
   return 0;
 }
 
+
 int receiver(Applicationlayer app, const char* port){
   unsigned char buffer[MAX_SIZE];
   int fd = llopen(port, RECEIVER);
   int disconnect = 0;
 
-
   do{
     if (llread(fd,buffer) == 0)
       disconnect = 1;
-    
     //TODO llread until DISC
-
   } while (disconnect == 0);
 
   llclose(fd, RECEIVER);
 }
 
-int create_control_packet(unsigned char * packet, const char* filename, const char control, size_t filesize){
+
+int create_control_packet(unsigned char * packet, const char* filename, const unsigned char control, size_t filesize){
   int i = 0, j;
   packet[i++] = control;
 
@@ -87,6 +87,7 @@ int create_control_packet(unsigned char * packet, const char* filename, const ch
 
   return i;
 }
+
 
 int create_data_packet(int sequence_no, int chunk_size, unsigned char *packet, unsigned char *buffer){
   // packet header
