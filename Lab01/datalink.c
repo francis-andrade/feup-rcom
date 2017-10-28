@@ -67,32 +67,36 @@ void byte_stuff(unsigned char** buf, int size){
       res[j] = ESCAPE_E;
     } else
       res[j] = (*buf)[i];
-    ++j;
+    j++;
   }
 
   free(*buf);
   *buf = res;
 }
 
-void byte_destuff(unsigned char** buf, int size){
+int byte_destuff(unsigned char** buf, int size){
   //TODO assegurar que também podemos incluir o bcc aqui
   unsigned char * res;
   int i, newsize = size;
   int j = 0;
-
+  res = (unsigned char *)malloc(newsize);
   for (i = 0; i < size; i++){
     if((*buf)[i] == ESCAPE){
       i++;
       if ((*buf)[i] == ESCAPE_E)
-        (*buf)[j] = ESCAPE;
+        res[j] = ESCAPE;
       else if ((*buf)[i] == FLAG_E)
-        (*buf)[j] = FLAG;
+        res[j] = FLAG;
       else return -1;
     }
+    else
+	res[j]=(*buf)[i];
     j++;
   }
 
-  *buf = (unsigned char *) realloc(*buf, j);
+  *res = (unsigned char *) realloc(res, j);
+  free(*buf);
+  *buf=res;
   return j;
 }
 

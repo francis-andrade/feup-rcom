@@ -40,6 +40,7 @@ unsigned char create_BCC(unsigned char * PACKET, int size){
 }
 
 State_Frame state_machine(int fd){
+ 
   unsigned char ch, datatmp[255];
 	State state = S_START;
   int i = 0;
@@ -93,9 +94,14 @@ State_Frame state_machine(int fd){
       case S_DN:
         datatmp[i] = ch;
         if (ch == FLAG){
-          if (datatmp[i-1] == create_BCC(datatmp, i-2)){
+	  unsigned char * datatmp_destuff=(unsigned char *) malloc(i-2);
+	  for(unsigned int ii=0;ii<i-2;ii++){
+		datatmp_destuff[ii]=datatmp[ii];
+	  }
+	  byte_destuff(& datatmp_destuff, i-2);
+          if (datatmp[i-1] == create_BCC(datatmp_destuff, i-2)){
             sf.size = i-2;
-            sf.data = (unsigned char*) malloc(sf.size);
+            sf.data = datatmp_destuff;
             state = S_END;
           } else {
             sf.success = 0;
