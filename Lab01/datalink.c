@@ -134,13 +134,12 @@ int llopen(const char *port, int status) {
     init_alarm();
     arm_alarm(3, 3);
     do{
-      //tcflush(fd, TCIOFLUSH);//CHECK IF THIS IS CORRECT
       if (alm->timeout_flag == 1){
         alm->timeout_flag = 0;
         send_frame(frame, fd);
       }
       sf = state_machine(fd);
-    } while ((!sf.success || sf.control != C_UA) && alm->count < alm->retries); //I THINK THERE IS A BUG WITH sf.success
+    } while ((!sf.success || sf.control != C_UA) && alm->count < alm->retries); 
     disarm_alarm();
     if (alm->count == alm->retries) {
       printf("Error: Could not open properly\n");
@@ -152,7 +151,7 @@ int llopen(const char *port, int status) {
   } else { //receiver
     do {
       sf = state_machine(fd);
-    } while (!sf.success || sf.control != C_SET); //I THINK THERE IS A BUG WITH sf.success
+    } while (!sf.success || sf.control != C_SET); 
     unsigned char *frame = malloc(5);
     build_frame_sup(A, C_UA, frame);
     send_frame(frame, fd);
@@ -185,13 +184,12 @@ int llwrite(int fd, unsigned char *buffer, int length) {
   while (send) {
     arm_alarm(3, 3);
     do {
-      //tcflush(fd, TCIOFLUSH);//CHECK IF THIS IS CORRECT
       if (alm->timeout_flag == 1) {
         alm->timeout_flag = 0;
         send_frame(*frame, fd);
       } 
       sf = state_machine(fd);
-    } while ((!sf.success || sf.control != rr || sf.control != rej) && alm->count < alm->retries); //I THINK THERE IS A BUG WITH sf.success
+    } while ((!sf.success || sf.control != rr || sf.control != rej) && alm->count < alm->retries); 
     disarm_alarm();
     if (alm->count == alm->retries) {
       printf("Error: Could not open properly\n");
@@ -256,13 +254,12 @@ int llclose(int fd, int status) {
     init_alarm();
     arm_alarm(3, 3);
     do {
-      //tcflush(fd, TCIOFLUSH);//CHECK IF THIS IS CORRECT
       if (alm->timeout_flag == 1) {
         alm->timeout_flag = 0;
         send_frame(frame, fd);
       }
       sf = state_machine(fd);
-    } while ((!sf.success || sf.control != C_DISC) && alm->count < alm->retries); //I THINK THERE IS A BUG WITH sf.success
+    } while ((!sf.success || sf.control != C_DISC) && alm->count < alm->retries); 
     disarm_alarm();
     if (alm->count == alm->retries) {
       printf("Error: Could not close properly\n");
@@ -281,7 +278,7 @@ int llclose(int fd, int status) {
         send_frame(frame, fd);
       }
       sf = state_machine(fd);
-    } while ((!sf.success || sf.control != C_UA) && alm->count < alm->retries); //I THINK THERE IS A BUG WITH sf.success
+    } while ((!sf.success || sf.control != C_UA) && alm->count < alm->retries);
     disarm_alarm();
     if (alm->count == alm->retries) {
       printf("Error: Could not close properly\n");
