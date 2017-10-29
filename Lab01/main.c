@@ -21,6 +21,7 @@ int main(int argc, char** argv){
   if (argc != 3 && argc != 4) {
     printf("Invalid number of arguments.\n");
     print_usage();
+    de_init_alarm();
     return 1;
   }
 
@@ -29,6 +30,7 @@ int main(int argc, char** argv){
     || (strcmp("/dev/ttyS1", argv[1])==0)){
     printf("Invalid serialport.\n");
     print_usage();
+    de_init_alarm();
     return 2;
   }
 
@@ -41,6 +43,7 @@ int main(int argc, char** argv){
     if (argc != 4){
       printf("Invalid sender arguments. Needs filename of file to send.\n");
       print_usage();
+    de_init_alarm();
       return 3;
     }
     sender(argv[1], argv[3]);
@@ -48,9 +51,11 @@ int main(int argc, char** argv){
   else {
     printf("Invalid sender/receiver argument.\n");
     print_usage();
+    de_init_alarm();
     return 4;
   }
 
   //done.
+  de_init_alarm();
   return 0;
 }

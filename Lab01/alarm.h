@@ -18,6 +18,7 @@ typedef struct {
 void init_alarm();
 void arm_alarm(int duration, int retries);
 void disarm_alarm();
+void de_init_alarm();
 
 extern s_alarm * alm;
 
