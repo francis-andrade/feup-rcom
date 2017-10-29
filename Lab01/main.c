@@ -14,7 +14,7 @@ void print_usage(){
 }
 
 int main(int argc, char** argv){
-  Applicationlayer app;
+  ApplicationLayer app;
   
   //check for argc
   if (argc != 3 && argc != 4) {
@@ -30,19 +30,21 @@ int main(int argc, char** argv){
     print_usage();
     return 2;
   }
+  app.port = argv[1];
 
   //check for argument sender / receiver
   if ((strcmp("receiver", argv[2]) == 0)){
-    app.status = RECEIVER;
+    app.mode = RECEIVER;
   }
   else if ((strcmp("sender", argv[2]) == 0)){
-    app.status = SENDER;
+    app.mode = SENDER;
     //check for sender's file arg
     if (argc != 4){
       printf("Invalid sender arguments. Needs filename of file to send.\n");
       print_usage();
       return 3;
     }
+    app.filename = arvc[3];
   }
   else {
     printf("Invalid sender/receiver argument.\n");
@@ -50,16 +52,14 @@ int main(int argc, char** argv){
     return 4;
   }
 
-  //open serial port
-  app.filedescriptor = open_port(argv[1]);
   //init alarm
   init_alarm();
 
   //enter sender/receiver process
-  if (app.status == SENDER){
-    sender(app, argv[1], argv[3]);
-  } else {
-    receiver(app, argv[1]);
+  if (app.mode == SENDER){
+    sender(app);
+  } else (app.mode == RECEIVER){
+    receiver(app);
   }
 
   //done.

@@ -13,18 +13,24 @@
 #define AL_T_SIZE 0
 #define AL_T_NAME 1
 
+#define CHUNK_SIZE 100
+#define TMP_FILENAME "receiving.tmp"
+
 typedef enum{
   SENDER, RECEIVER
 } Mode;
 
 typedef struct {
-  int filedescriptor;
-  int status;
-} Applicationlayer;
+  Mode mode; 	// 
+  char* port; 	// serialbus device path
+  char* filename;
+  size_t filesize;
+  int fd; 		// file descriptor
+} ApplicationLayer;
 
 
-int sender(Applicationlayer app, const char* port, const char* filename);
-int receiver(Applicationlayer app, const char* port);
+int sender(ApplicationLayer app, const char* port, const char* filename);
+int receiver(ApplicationLayer app, const char* port);
 
 int create_control_packet(unsigned char * packet, const char* filename, unsigned char control, size_t filesize); 
 int create_data_packet(int sequence_no, int chunk_size, unsigned char *packet, unsigned char *buffer); 
