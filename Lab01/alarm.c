@@ -33,6 +33,11 @@ void alarm_handler(int signal){
 }
 
 void init_alarm(){
+  alm=malloc(sizeof(s_alarm));
+  alm->count=0;
+  alm->timeout_flag=0;
+  alm->duration=1;
+  alm->retries=1;
   struct sigaction action;
   action.sa_handler = alarm_handler;
   sigemptyset(&action.sa_mask);
@@ -42,8 +47,7 @@ void init_alarm(){
 }
 
 void arm_alarm(int duration, int retries/*, int fd, unsigned char * frame*/){
-  printf("Entered function arm_alarm()\n");
-  alm=malloc(sizeof(s_alarm));
+  printf("Entered function arm_alarm()\n"); 
   // init flag + statics
   alm->timeout_flag = 0;
   alm->duration = duration;
@@ -57,6 +61,9 @@ void arm_alarm(int duration, int retries/*, int fd, unsigned char * frame*/){
 }
 
 void disarm_alarm(){
-  free(alm);
   alarm(0);
+}
+
+void de_init_alarm(){
+  free(alm);
 }
