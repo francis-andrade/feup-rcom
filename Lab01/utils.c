@@ -24,12 +24,14 @@ int build_frame_data(unsigned char address, unsigned char control, unsigned char
 
   frame_to_stuff[i] = create_BCC(PACKET, length);
   int new_size = byte_stuff(&frame_to_stuff, length + 1);
-  printf("Reallocating frame memory after byte stuffing...\n");
+  printf("build_frame_data(): Reallocating frame memory after byte stuffing...\n");
   *FRAME = realloc(*FRAME, new_size + 5);
+  printf("build_frame_data(): Reallocated *FRAME\n");
   (*FRAME)[0] = FLAG;
   (*FRAME)[1] = address;
   (*FRAME)[2] = control;
   (*FRAME)[3] = (*FRAME)[1] ^ (*FRAME)[2];
+  printf("build_frame_data(): Defined the first 4 elements of *FRAME\n");
   for (i = 0; i < new_size; i++) {
     *FRAME[i + 4] = frame_to_stuff[i];
   }
