@@ -128,8 +128,9 @@ int send_frame(unsigned char *frame, int fd) {
     if (write(fd, frame, i + 1) == -1)
       r = -1;
   } else { //supervision frame
-    if (write(fd, frame, 5))
+    if (write(fd, frame, 5)==-1){
       r = -1;
+    }
   }
   printf("Left function send_frame with success r=%d\n",r);
   return r;
@@ -262,6 +263,7 @@ int llread(int fd, unsigned char *buffer) {
    }
   }
   free(frame);
+  printf("Leaving function llread(), sf.size=%d\n",sf.size); 
   return sf.size;
 }
 
