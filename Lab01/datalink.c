@@ -225,6 +225,7 @@ int llread(int fd, unsigned char *buffer) {
   while (1) {
     sf = state_machine(fd);
     if (sf.success == 1 && sf.control == C_SET){
+      free(frame);
       return -2;
     } else if (sf.success == 0 && sf.control == ns) {
       build_frame_sup(A, rej, frame);
@@ -240,6 +241,10 @@ int llread(int fd, unsigned char *buffer) {
       send_frame(frame, fd);
       break;
     }
+      else if(sf.success==1 && sf.control == C_DISC){
+	free(frame);
+	return -3;
+   }
   }
   free(frame);
   return sf.size;
