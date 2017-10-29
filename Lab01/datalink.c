@@ -107,14 +107,17 @@ int byte_destuff(unsigned char** buf, int size){
 }
 
 int send_frame(unsigned char* frame, int fd){
+  int r=0;
   if(frame[2] == C_DATA0 || frame[2] == C_DATA1){ //data frame
     int i = 1;
     while(frame[i]!=FLAG)
       i++;
-    write(fd, frame, i+1);
+    if(write(fd, frame, i+1)==-1) r=-1;
   } else {                                        //supervision frame
-    write(fd, frame, 5);
+    if(write(fd, frame, 5)) r=-1;
   }
+
+  return r;
 }
 
 int llopen(const char* port, int status){
@@ -122,7 +125,7 @@ int llopen(const char* port, int status){
   State_Frame sf;
 
   if (status == SENDER){ //sender
-    unsigned char * frame;
+    unsigned char * frame=malloc(5);
     build_frame_sup(A, C_SET, frame);
     //ALARM
       init_alarm();
@@ -138,8 +141,10 @@ int llopen(const char* port, int status){
       disarm_alarm();
       if(alm->count==alm->retries){
 	printf("Error: Could not open properly\n");
+	free(frame);
 	return -1;
       }
+      free(frame);
       return fd;
      
   } 
@@ -147,9 +152,10 @@ int llopen(const char* port, int status){
     do{
         sf = state_machine(fd);
       } while (!sf.success || sf.control != C_SET);//I THINK THERE IS A BUG WITH sf.success
-    unsigned char * frame;
+    unsigned char * frame=malloc(5);
     build_frame_sup(A, C_UA, frame);
     send_frame(frame, fd);
+    free(frame);
     return fd;
     
   }
@@ -171,7 +177,7 @@ int llwrite(int fd, unsigned char* buffer, int length){
 	rej=C_REJ1;
 	data=C_DATA1;
       }
-      unsigned char * frame;
+      unsigned char ** frame=malloc(sizeof(unsigned char *));
       int size=build_frame_data(A, data, frame, buffer, length);
   
       //ALARM
@@ -183,24 +189,25 @@ int llwrite(int fd, unsigned char* buffer, int length){
 	//tcflush(fd, TCIOFLUSH);//CHECK IF THIS IS CORRECT
 	if(alm->timeout_flag==1){
 		alm->timeout_flag=0;
-		send_frame(frame, fd);
+		send_frame(* frame, fd);
 	}
         sf = state_machine(fd);
       } while ((!sf.success || sf.control != rr || sf.control != rej ) && alm->count<alm->retries);//I THINK THERE IS A BUG WITH sf.success
       disarm_alarm();
       if(alm->count==alm->retries){
 	printf("Error: Could not open properly\n");
+	free(frame);
 	return -1;
       }
       else if(sf.control==rr){
 	ll->sequenceNumber=(ll->sequenceNumber+1)%2;
+	free(frame);
 	return size;
      }
-     else{
-		send=1;	
-	}
+  
      }
-
+  free(frame);
+   return size;
   
   //TODO obter trama
   //TODO enviar trama
@@ -211,16 +218,45 @@ int llwrite(int fd, unsigned char* buffer, int length){
 
 int llread(int fd, unsigned char* buffer){
   State_Frame sf;
-  unsigned char frame[MAX_SIZE];
+   unsigned char * frame=malloc(5);
   //TODO se receber um set aquando da primeira execucao, mandar ua para reestabelecer execucao
   //TODO fazer byte unstuffing e mandar para o buffer
-
+  unsigned char ns, rr, rej;
+  if(ll->sequenceNumber==0){;
+	ns=C_DATA0;
+	rej=C_REJ0;
+	rr=C_RR1;
+      }
+  else{
+	ns=C_DATA1;
+	rej=C_REJ1;
+	rr=C_RR0;
+      }
   while(1){
     sf = state_machine(fd);
+    if(sf.success==1 && sf.control==C_SET){
+	return -2;
+    }
+    else if(sf.success==0 && sf.control==ns){
+	
+	build_frame_sup(A, rej, frame);
+	send_frame(frame, fd); 
+	break;
+    }
+    else if(sf.success==1 && sf.control==ns){
+	unsigned int i;
+	for(i=0;i<sf.size;i++){
+		buffer[i]=sf.data[i];
+	}
+	build_frame_sup(A, rr, frame);
+	send_frame(frame, fd); 
+	break;
+
+   }
+
   }
-
-  byte_destuff(frame, sf.size);
-
+  free(frame);
+  return sf.size;
 
 
 //TODO ler trama
@@ -228,7 +264,7 @@ int llread(int fd, unsigned char* buffer){
 }
 
 int llclose(int fd, int status){
-    unsigned char* frame;
+    unsigned char* frame=malloc(5);
     State_Frame sf;
     build_frame_sup(A, C_DISC, frame);
 
@@ -267,11 +303,13 @@ int llclose(int fd, int status){
       disarm_alarm();
       if(alm->count==alm->retries){
 	printf("Error: Could not close properly\n");
+	free(frame);
 	return -1;
       }
 
     }
     tcsetattr(fd,TCSANOW,&oldtio); 
+    free(frame);
     return close_port(fd);
 }
 

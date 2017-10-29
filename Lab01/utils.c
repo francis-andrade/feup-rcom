@@ -5,7 +5,6 @@
 s_alarm * alm;
 
 int build_frame_sup(unsigned char address, unsigned char control, unsigned char * FRAME){
-  FRAME = malloc(5);
   FRAME[0] = FLAG;
   FRAME[1] = address;
   FRAME[2] = control;
@@ -14,7 +13,7 @@ int build_frame_sup(unsigned char address, unsigned char control, unsigned char 
   return 5;
 }
 
-int build_frame_data(unsigned char address, unsigned char control, unsigned char * FRAME, unsigned char * PACKET, int length){
+int build_frame_data(unsigned char address, unsigned char control, unsigned char ** FRAME, unsigned char * PACKET, int length){
   
   unsigned char * frame_to_stuff=malloc(length+1);
   int i;
@@ -27,15 +26,15 @@ int build_frame_data(unsigned char address, unsigned char control, unsigned char
   int new_size=byte_stuff(& frame_to_stuff, length+1);
 
 
-  FRAME = malloc(new_size+5);
-  FRAME[0] = FLAG;
-  FRAME[1] = address;
-  FRAME[2] = control;
-  FRAME[3] = FRAME[1] ^ FRAME[2];
+  *FRAME = realloc(*FRAME, new_size+5);
+  (*FRAME)[0] = FLAG;
+  (*FRAME)[1] = address;
+  (*FRAME)[2] = control;
+  (*FRAME)[3] = (*FRAME)[1] ^ (*FRAME)[2];
   for(i=0;i<new_size;i++){
-	FRAME[i+4]=frame_to_stuff[i];
+	*FRAME[i+4]=frame_to_stuff[i];
   }
-  FRAME[i+5] = FLAG;
+  (*FRAME)[i+5] = FLAG;
   free(frame_to_stuff);
   return new_size+5; //tamanho total da trama
 }
@@ -107,7 +106,8 @@ State_Frame state_machine(int fd){
         datatmp[i] = ch;
         if (ch == FLAG){
 	  unsigned char * datatmp_destuff=(unsigned char *) malloc(i-2);
-	  for(unsigned int ii=0;ii<i-2;ii++){
+	  unsigned int ii;
+	  for(ii=0;ii<i-2;ii++){
 		datatmp_destuff[ii]=datatmp[ii];
 	  }
 	  byte_destuff(& datatmp_destuff, i-2);
