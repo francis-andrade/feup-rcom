@@ -103,13 +103,24 @@ int receiver(ApplicationLayer app){
     // llopen - le init
     case 0:
       //open serial bus
-      app.fd = llopen(app.port, SENDER);
-      if (app.fd<=0)
+      app.fd = llopen(app.port, RECEIVER);
+      if (app.fd>0)
+        printf("Successfully opened port.\n");
+      else {
+        printf("Failed to open port.\n");
+        break;
+      }
         
       //open temporary file
-      if (fp!=0) 
-        fclose(fp);
+      if (fp!=0) fclose(fp);
       fp = fopen(TMP_FILENAME, "wb");
+      if (fp>0){
+        printf("Opened temporary file '%s'\n",TMP_FILENAME);
+        state=1;
+      }
+      else {
+        printf("Failed to open temporary file '%s'\n",TMP_FILENAME);
+      }
     break;
 
     // llread
@@ -118,6 +129,7 @@ int receiver(ApplicationLayer app){
       if (res>0){
         // is it a start packet?
         if (buffer[0]==AL_C_START){
+          printf("Reading Start-Packet...\n");
           //copy to packet_start
           free(packet_start);
           packet_start_size = res;
@@ -164,6 +176,7 @@ int receiver(ApplicationLayer app){
         }
         // is it an end packet?
         else if (buffer[0]==AL_C_END){
+          printf("Reading End-Packet...\n");
           //copy to packet_end
           free(packet_end);
           packet_end_size = res;
