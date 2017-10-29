@@ -2,7 +2,6 @@
 #define UTILS_H
 
 #include <stdlib.h>
-#include "alarm.h"
 
 //  Frames
 #define ESCAPE 0x7d

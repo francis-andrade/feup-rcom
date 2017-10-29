@@ -1,4 +1,8 @@
 #include "utils.h"
+#include "alarm.h"
+#include "datalink.h"
+
+s_alarm * alm;
 
 int build_frame_sup(unsigned char address, unsigned char control, unsigned char * FRAME){
   FRAME = malloc(5);
@@ -39,6 +43,7 @@ unsigned char create_BCC(unsigned char * PACKET, int size){
   return res;
 }
 
+//I THINK THERE IS A BUG WITH sf.success
 State_Frame state_machine(int fd){
  
   unsigned char ch, datatmp[255];
@@ -46,9 +51,9 @@ State_Frame state_machine(int fd){
   int i = 0;
   State_Frame sf;
   sf.success = 1;
-
+  int curr_count=alm->count;
   //run until we reach the frame's end or until being timed-out
-	while (state != S_END && !timeout_flag){
+	while (state != S_END && curr_count==alm->count){
 		if (read(fd, &ch, 1)<=0)
       continue;
 
@@ -103,6 +108,7 @@ State_Frame state_machine(int fd){
             sf.size = i-2;
             sf.data = datatmp_destuff;
             state = S_END;
+	    
           } else {
             sf.success = 0;
             return sf;

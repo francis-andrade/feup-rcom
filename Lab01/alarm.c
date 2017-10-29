@@ -1,21 +1,33 @@
 #include "alarm.h"
+#include "datalink.h"
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <termios.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
 
 // timeout flag
-int timeout_flag = 0;
+//int timeout_flag = 0;
 // durations and tries initialized in arm_alarm()
-static int s_duration = 0;
-static int s_retries = 0;
-// count iterated in alarm_handler()
-static int s_count = 0;
+
+static unsigned char * s_frame;
+static int s_fd;
+
+s_alarm * alm;
 
 void alarm_handler(int signal){
-  s_count++;
+  alm->count++;
 
-  if (s_count < s_retries){
+  if (alm->count < alm->retries){
     printf("Timeout! Resending frame..");
-    timeout_flag = 1;
-    alarm(s_duration);
+    
+    send_frame(s_frame, s_fd);
+    alarm(alm->duration);
   } else {
+    alm->timeout_flag = 1;
     printf("Timeout x3! Exiting..");
   }
 }
@@ -29,16 +41,21 @@ void init_alarm(){
   sigaction(SIGALRM, &action, NULL);
 }
 
-void arm_alarm(int duration, int retries){
+void arm_alarm(int duration, int retries, int fd, unsigned char * frame){
+  alm=malloc(sizeof(s_alarm));
   // init flag + statics
-  timeout_flag = 0;
-  s_duration = duration;
-  s_retries = retries;
-  s_count = 0;
+  alm->timeout_flag = 0;
+  alm->duration = duration;
+  alm->retries = retries;
+  alm->count = 0;
   // arm it!
-  alarm(s_duration);
+  s_frame=frame;
+  s_fd=fd;
+  send_frame(frame, fd);
+  alarm(alm->duration);
 }
 
 void disarm_alarm(){
+  free(alm);
   alarm(0);
 }

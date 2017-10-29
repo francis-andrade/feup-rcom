@@ -1,6 +1,10 @@
 #include "datalink.h"
+#include "utils.h"
+#include "applicationlayer.h"
+#include "alarm.h"
 
 struct termios oldtio, newtio;
+s_alarm * alm;
 
 int open_port(const char* destination){
     int fd = open(destination, O_RDWR | O_NOCTTY | O_NONBLOCK);
@@ -114,37 +118,33 @@ int send_frame(unsigned char* frame, int fd){
 int llopen(const char* port, int status){
   int fd = open_port(port);
   State_Frame sf;
-  unsigned char* t_frame;
 
-  if (status == RECEIVER){ //receiver
-    //wait for the C_SET frame
-    do sf = state_machine(fd);
-      while (!sf.success || sf.control != C_SET);
-
-    //send back a C_UA frame
-    build_frame_sup(A, C_UA, t_frame);
-    send_frame(t_frame, fd);
-
-    //done.
-    return 0;
+  if (status == SENDER){ //sender
+    unsigned char * frame;
+    build_frame_sup(A, C_SET, frame);
+    //ALARM
+      init_alarm();
+      arm_alarm(3,3, fd, frame);
+      do{
+        sf = state_machine(fd);
+      } while ((!sf.success || sf.control != C_UA) && alm->timeout_flag!=1);//I THINK THERE IS A BUG WITH sf.success
+      disarm_alarm();
+      if(alm->timeout_flag==1){
+	printf("Error: Could not open properly\n");
+	return 0;
+      }
+   
+      build_frame_sup(A, C_UA, frame);
+      send_frame(frame, fd);
   } 
-  else { //sender
-    //send the C_SET frame
-    build_frame_sup(A, C_SET, t_frame);
-    send_frame(t_frame, fd);
-  
-    //init alarme
-    arm_alarm(TIMEOUT_DURATION, TIMEOUT_TRIES);
-
-    //wait for the C_UA frame
-    do sf = state_machine(fd);
-      while (!sf.success || sf.control != C_SET);
-
-    //shutdown alarme
-    disarm_alarm();
-
-    //done.
-    return 0;
+  else { //receiver
+    do{
+        sf = state_machine(fd);
+      } while (!sf.success || sf.control != C_SET);//I THINK THERE IS A BUG WITH sf.success
+    unsigned char * frame;
+    build_frame_sup(A, C_UA, frame);
+    send_frame(frame, fd);
+    
   }
 
   //oops! something went wrong.
@@ -185,24 +185,34 @@ int llclose(int fd, int status){
     build_frame_sup(A, C_DISC, frame);
 
     if (status == SENDER) {
-      send_frame(frame, fd);
 
-      //TODO implementar alarme e repeticoes aqui também
-
+      //ALARM
+      init_alarm();
+      arm_alarm(3,3, fd, frame);
       do{
         sf = state_machine(fd);
-      } while (!sf.success || sf.control != C_DISC);
-
+      } while ((!sf.success || sf.control != C_DISC) && alm->timeout_flag!=1);//I THINK THERE IS A BUG WITH sf.success
+      disarm_alarm();
+      if(alm->timeout_flag==1){
+	printf("Error: Could not close properly\n");
+	return 0;
+      }
+   
       build_frame_sup(A, C_UA, frame);
       send_frame(frame, fd);
     } else {
-      send_frame(frame, fd);
-
-      //TODO alarme
-
+      //ALARM
+      init_alarm();
+      arm_alarm(3,3, fd, frame);
       do{
         sf = state_machine(fd);
-      } while (!sf.success || sf.control != C_UA);
+      } while ((!sf.success || sf.control != C_UA) && alm->timeout_flag!=1);//I THINK THERE IS A BUG WITH sf.success
+      disarm_alarm();
+      if(alm->timeout_flag==1){
+	printf("Error: Could not close properly\n");
+	return 0;
+      }
+
     }
     tcsetattr(fd,TCSANOW,&oldtio); 
     return close_port(fd);

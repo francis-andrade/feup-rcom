@@ -5,11 +5,22 @@
 #include <unistd.h>
 #include <signal.h>
 
-int timeout_flag;
+typedef struct {
+  int timeout_flag;
+  int duration;
+  int retries;
+  int count;
+  int status;
+} s_alarm;
+
+
 
 void init_alarm();
-void arm_alarm(int duration, int retries);
+void arm_alarm(int duration, int retries, int fd, unsigned char * frame);
 void disarm_alarm();
+
+extern s_alarm * alm;
+
 
 
 #endif

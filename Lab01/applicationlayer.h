@@ -1,7 +1,6 @@
 #ifndef APPLICATIONLAYER_H
 #define APPLICATIONLAYER_H
 
-#include "datalink.h"
 #include <stdio.h>  /* printf */
 #include <stdlib.h> /* fopen, fseek, ... */
 #include <string.h>

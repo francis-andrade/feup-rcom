@@ -1,7 +1,7 @@
 #TODO THIS
 all: nserial
 
-nserial: alarm.c alarm.h applicationlayer.c applicationlayer.h datalink.c datalink.h main.c utils.c utils.h #receiver.c sender.c
+nserial: alarm.h alarm.c applicationlayer.c applicationlayer.h datalink.c datalink.h main.c utils.c utils.h #receiver.c sender.c
 	gcc -Wall alarm.c alarm.h applicationlayer.c applicationlayer.h datalink.c datalink.h main.c utils.c utils.h -o nserial
 
 clean:
