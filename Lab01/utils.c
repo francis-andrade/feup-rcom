@@ -5,7 +5,7 @@
 s_alarm *alm;
 
 int build_frame_sup(unsigned char address, unsigned char control, unsigned char *FRAME) {
-  printf("Entered build_frame_sup() with address=%c and control=%c\n",address,control);  
+  printf("Entered build_frame_sup() with address=0x%x and control=0x%x\n",address,control);  
   FRAME[0] = FLAG;
   FRAME[1] = address;
   FRAME[2] = control;
@@ -33,7 +33,7 @@ int build_frame_data(unsigned char address, unsigned char control, unsigned char
   (*FRAME)[3] = (*FRAME)[1] ^ (*FRAME)[2];
   printf("build_frame_data(): Defined the first 4 elements of *FRAME\n");
   for (i = 0; i < new_size; i++) {
-    *FRAME[i + 4] = frame_to_stuff[i];
+    (*FRAME)[i + 4] = frame_to_stuff[i];
   }
   (*FRAME)[i + 5] = FLAG;
   printf("Freeing frame_to_stuff memory...\n");
