@@ -22,13 +22,13 @@ void alarm_handler(int signal){
   alm->count++;
   alm->timeout_flag = 1;
   if (alm->count < alm->retries){
-    printf("Timeout! Resending frame..");
+    printf("Timeout! Resending frame..\n");
     
     //send_frame(s_frame, s_fd);
     alarm(alm->duration);
   } else {
     
-    printf("Timeout x3! Exiting..");
+    printf("Timeout x3! Exiting..\n");
   }
 }
 
@@ -42,6 +42,7 @@ void init_alarm(){
 }
 
 void arm_alarm(int duration, int retries/*, int fd, unsigned char * frame*/){
+  printf("Entered function arm_alarm()\n");
   alm=malloc(sizeof(s_alarm));
   // init flag + statics
   alm->timeout_flag = 0;

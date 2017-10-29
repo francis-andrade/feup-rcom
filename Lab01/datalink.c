@@ -8,8 +8,10 @@ s_alarm *alm;
 linklayer * ll;
 
 int open_port(const char *destination) {
+  printf("Entered function open_port\n");
   ll=malloc(sizeof(linklayer));
   ll->baudrate=BAUDRATE;
+  printf("Allocated ll\n");
   int fd = open(destination, O_RDWR | O_NOCTTY | O_NONBLOCK);
   if (fd < 0) {
     perror(destination);
@@ -39,11 +41,12 @@ int open_port(const char *destination) {
     perror("tcsetattr");
     exit(-1);
   }
-
+  printf("Left function open_port\n");
   return fd;
 }
 
 int close_port(int fd) {
+  printf("Entered function close_port\n");
   // reset TC to old config
   if (tcsetattr(fd, TCSANOW, &oldtio) == -1) {
     perror("tcsetattr");
@@ -55,6 +58,7 @@ int close_port(int fd) {
 }
 
 int byte_stuff(unsigned char **buf, int size) {
+  printf("Entered function byte_stuff\n");
   int i, newsize = size;
   unsigned char *res;
 
@@ -81,10 +85,12 @@ int byte_stuff(unsigned char **buf, int size) {
 
   free(*buf);
   *buf = res;
+  printf("Left function byte_stuff *buff= %s\n",*buf);
   return newsize;
 }
 
 int byte_destuff(unsigned char **buf, int size) {
+  printf("Entered function byte_destuff\n");
   unsigned char *res;
   int i, newsize = size;
   int j = 0;
@@ -96,8 +102,10 @@ int byte_destuff(unsigned char **buf, int size) {
         res[j] = ESCAPE;
       else if ((*buf)[i] == FLAG_E)
         res[j] = FLAG;
-      else
+      else{
+	printf("Left function byte_destuff without success\n");
         return -1;
+	}
     } else
       res[j] = (*buf)[i];
     j++;
@@ -106,10 +114,12 @@ int byte_destuff(unsigned char **buf, int size) {
   res = (unsigned char *)realloc(res, j);
   free(*buf);
   *buf = res;
+  printf("Left function byte_destuff with success: *buf= %s\n",*buf);
   return j;
 }
 
 int send_frame(unsigned char *frame, int fd) {
+  printf("Entered function send_frame frame=%s\n", frame);
   int r = 0;
   if (frame[2] == C_DATA0 || frame[2] == C_DATA1){  //data frame
     int i = 1;
@@ -121,15 +131,17 @@ int send_frame(unsigned char *frame, int fd) {
     if (write(fd, frame, 5))
       r = -1;
   }
-
+  printf("Left function send_frame with success r=%d\n",r);
   return r;
 }
 
 int llopen(const char *port, int status) {
+  printf("Entered function llopen()\n");
   int fd = open_port(port);
   State_Frame sf;
 
   if (status == SENDER){  //sender
+    printf("llopen: sender\n");
     ll->sequenceNumber=0;
     unsigned char *frame = malloc(5);
     build_frame_sup(A, C_SET, frame);
@@ -152,6 +164,7 @@ int llopen(const char *port, int status) {
     free(frame);
     return fd;
   } else { //receiver
+    printf("llopen: receiver\n");
     ll->sequenceNumber=0;
     do {
       sf = state_machine(fd);
@@ -168,6 +181,7 @@ int llopen(const char *port, int status) {
 }
 
 int llwrite(int fd, unsigned char *buffer, int length) {
+   printf("Entered function llwrite()\n");
   State_Frame sf;
   unsigned char rr, rej, data;
   if (ll->sequenceNumber == 0) {
@@ -210,6 +224,7 @@ int llwrite(int fd, unsigned char *buffer, int length) {
 }
 
 int llread(int fd, unsigned char *buffer) {
+   printf("Entered function llread()\n");
   State_Frame sf;
   unsigned char *frame = malloc(5);
   unsigned char ns, rr, rej;
@@ -253,6 +268,7 @@ int llread(int fd, unsigned char *buffer) {
 }
 
 int llclose(int fd, int status) {
+  printf("Entered function llclose()\n");
   unsigned char *frame = malloc(5);
   State_Frame sf;
   build_frame_sup(A, C_DISC, frame);
