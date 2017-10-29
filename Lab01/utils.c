@@ -24,7 +24,7 @@ int build_frame_data(unsigned char address, unsigned char control, unsigned char
 
   frame_to_stuff[i] = create_BCC(PACKET, length);
   int new_size = byte_stuff(&frame_to_stuff, length + 1);
-
+  printf("Reallocating frame memory after byte stuffing...\n");
   *FRAME = realloc(*FRAME, new_size + 5);
   (*FRAME)[0] = FLAG;
   (*FRAME)[1] = address;
@@ -34,6 +34,7 @@ int build_frame_data(unsigned char address, unsigned char control, unsigned char
     *FRAME[i + 4] = frame_to_stuff[i];
   }
   (*FRAME)[i + 5] = FLAG;
+  printf("Freeing frame_to_stuff memory...\n");
   free(frame_to_stuff);
   printf("Exiting build_frame_data() with newsize=%d\n",newsize);  
   return new_size + 5; //tamanho total da trama
