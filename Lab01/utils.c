@@ -36,7 +36,7 @@ int build_frame_data(unsigned char address, unsigned char control, unsigned char
   (*FRAME)[i + 5] = FLAG;
   printf("Freeing frame_to_stuff memory...\n");
   free(frame_to_stuff);
-  printf("Exiting build_frame_data() with newsize=%d\n",newsize);  
+  printf("Exiting build_frame_data() with newsize=%d\n",new_size);  
   return new_size + 5; //tamanho total da trama
 }
 
