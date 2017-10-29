@@ -5,6 +5,7 @@
 s_alarm *alm;
 
 int build_frame_sup(unsigned char address, unsigned char control, unsigned char *FRAME) {
+  printf("Entered build_frame_sup() with address=%c and control=%c\n",address,control);  
   FRAME[0] = FLAG;
   FRAME[1] = address;
   FRAME[2] = control;
@@ -14,7 +15,7 @@ int build_frame_sup(unsigned char address, unsigned char control, unsigned char 
 }
 
 int build_frame_data(unsigned char address, unsigned char control, unsigned char **FRAME, unsigned char *PACKET, int length) {
-
+  printf("Entered build_frame_data() with address=%c, control=%c and length=%d\n",address,control,length);
   unsigned char *frame_to_stuff = malloc(length + 1);
   int i;
   for (i = 0; i < length; i++) {
@@ -34,10 +35,12 @@ int build_frame_data(unsigned char address, unsigned char control, unsigned char
   }
   (*FRAME)[i + 5] = FLAG;
   free(frame_to_stuff);
+  printf("Exiting build_frame_data() with newsize=%d\n",newsize);  
   return new_size + 5; //tamanho total da trama
 }
 
 unsigned char create_BCC(unsigned char *PACKET, int size) {
+  printf("Entered create_BCC() with size=%d\n",size);  
   unsigned char res = 0;
   int i;
   for (i = 0; i < size; i++) {
@@ -49,6 +52,7 @@ unsigned char create_BCC(unsigned char *PACKET, int size) {
 
 //I THINK THERE IS A BUG WITH sf.success
 State_Frame state_machine(int fd) {
+  printf("Entered state_machine()\n");
 
   unsigned char ch, datatmp[255];
   State state = S_START;
@@ -105,6 +109,7 @@ State_Frame state_machine(int fd) {
     case S_BCC1:
       if (ch == FLAG) {
         state = S_END;
+        printf("Supervision frame received.\n");
       } else
         state = S_START;
       break;
@@ -117,7 +122,7 @@ State_Frame state_machine(int fd) {
         for (ii = 0; ii < i - 2; ii++) {
           datatmp_destuff[ii] = datatmp[ii];
         }
-
+        printf("Data frame received. Destuffing frame data...\n");        
         byte_destuff(&datatmp_destuff, i - 2);
         if (datatmp[i - 1] == create_BCC(datatmp_destuff, i - 2)) {
           sf.size = i - 2;
@@ -136,5 +141,6 @@ State_Frame state_machine(int fd) {
     }
   }
 
+  printf("Exiting state machine...\n");
   return sf;
 }
