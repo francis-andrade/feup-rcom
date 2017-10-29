@@ -61,11 +61,13 @@ State_Frame state_machine(int fd) {
   State_Frame sf;
   sf.success = 1;
   int curr_count = alm->count;
+  printf("Entering state machine cycle\n");
   //run until we reach the frame's end or until being timed-out
   while (state != S_END && curr_count == alm->count) {
     if (read(fd, &ch, 1) <= 0)
       continue;
 
+    println("State=%d\n",state);
     switch (state) {
     case S_START:
       if (ch == FLAG) {
