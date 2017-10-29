@@ -1,4 +1,4 @@
-#include "applicationLayer.h"
+#include "applicationlayer.h"
 #include "datalink.h"
 
 
@@ -46,13 +46,12 @@ int create_control_packet(unsigned char * packet, const char* filename, const un
 
 int sender(ApplicationLayer app){
   int res, packet_size, i;
-  size_t filesize, chunk_size;
+  size_t filesize;
 
   // open serial bus fd
-  app.fd = llopen(port, SENDER);
+  app.fd = llopen(app.port, SENDER);
 
   //open file (e.g. penguin)
-  app.filename = filename;
   FILE *fp = fopen(app.filename, "rb");
 
   // get the filesize
@@ -65,55 +64,57 @@ int sender(ApplicationLayer app){
   unsigned char packet[CHUNK_SIZE+4];
 
   // send START packet (timeouts are accounted for within llwrite, using timeout_flag)
-  packet_size = create_control_packet(packet, filename, AL_C_START, filesize);
+  packet_size = create_control_packet(packet, app.filename, AL_C_START, filesize);
   do {
-    res = llwrite(fd, packet, packet_size);
+    res = llwrite(app.fd, packet, packet_size);
   } while (res<0);
 
   // send all other packets
   for (i=0; fread(chunk, CHUNK_SIZE, 1, fp)>0 ; ++i){ // read a chunk of the file
-    packet_size = create_data_packet(i%256, chunk, chunk_size, packet); // i = applayer seqN
+    packet_size = create_data_packet(i%256, chunk, CHUNK_SIZE, packet); // i = applayer seqN
     //loop
-    do { 
-      res = llwrite(fd, packet, packet_size);
+    do {  
+      res = llwrite(app.fd, packet, packet_size);
     } while (res<0);
   }
   
   //send END packet
-  packet_size = create_control_packet(packet, filename, AL_C_END, filesize);
+  packet_size = create_control_packet(packet, app.filename, AL_C_END, filesize);
   do {
-    res = llwrite(fd, packet, packet_size);
+    res = llwrite(app.fd, packet, packet_size);
   } while (res<0);
 
   //end runtime
-  llclose(fd, SENDER);
+  llclose(app.fd, SENDER);
   fclose(fp);
   return 0;
 }
 
 
 int receiver(ApplicationLayer app){
-  int i, packet_start_size=0, packet_end_size=0, packet_sn=0;
-  unsigned char buffer[256];  //TODO this should be defined in header
-  unsigned char * packet_start=0, packet_end=0;
+  int i, j, res;
+  unsigned char buffer[256];  //TODO this 256 should be defined in header
+  unsigned char * packet_start=0, * packet_end=0;
+  int packet_start_size=0, packet_end_size=0, packet_sn=0;
+  FILE *fp;
 
   int state = 0;
   while (state!=3) switch (state){
     // llopen - le init
     case 0:
       //open serial bus
-      res = llopen(port, SENDER);
-      if (res<=0)
-        break;
+      app.fd = llopen(app.port, SENDER);
+      if (app.fd<=0)
+        
       //open temporary file
       if (fp!=0) 
         fclose(fp);
-      FILE *fp = fopen(TMP_FILENAME, "wb");
+      fp = fopen(TMP_FILENAME, "wb");
     break;
 
     // llread
     case 1:
-      res = llread(app.fd, buffer)
+      res = llread(app.fd, buffer);
       if (res>0){
         // is it a start packet?
         if (buffer[0]==AL_C_START){
@@ -154,9 +155,9 @@ int receiver(ApplicationLayer app){
             if (buffer[1]!=packet_sn)
               printf("Warning: Expected packet sequence number %d. Received %d\n",packet_sn, buffer[1]);
             else {
-              size_t length = size_t(buffer[2]*256) + size_t(buffer[3]);
+              size_t length = ((size_t)buffer[2])*256 + ((size_t)buffer[3]);
               if (length != res-4)
-                printf("Warning: Packet-body bytes read (%d) differ from number expected (res-4, res=%d)\n",length,res);
+                printf("Warning: Packet-body bytes read (%d) differ from number expected (res-4, res=%d)\n",(int)length,res);
               fwrite(buffer+4, res-4, 1, fp);
             }
           }
@@ -169,7 +170,7 @@ int receiver(ApplicationLayer app){
           packet_end = (unsigned char *) malloc(packet_end_size);
           memcpy(packet_end, buffer, packet_end_size);
           //check whether packet_end == packet_start
-          if (strcmp(packet_start+1, packet_end+1, packet_end_size-1)!=0) //skip control byte
+          if (memcmp(packet_start+1, packet_end+1, packet_end_size-1)!=0) //skip control byte
             printf("Warning: Start-Packet differs from End-Packet\n");
           //copy current file to another file
           fclose(fp);
@@ -180,7 +181,7 @@ int receiver(ApplicationLayer app){
       }
       else if (res==-2){
         state=0;
-        printf("llread() retuned: -2 (we have received a SET, so back to llopen())\n",res);
+        printf("llread() retuned: -2 (we have received a SET, so back to llopen())\n");
       }
       else if (res==-3){
         state=2;
@@ -192,7 +193,7 @@ int receiver(ApplicationLayer app){
     break;
 
     case 2: 
-      llclose(fd, RECEIVER);
+      llclose(app.fd, RECEIVER);
       if (fp!=0)
         fclose(fp);     
       state = 3;

@@ -29,10 +29,10 @@ typedef struct {
 } ApplicationLayer;
 
 
-int sender(ApplicationLayer app, const char* port, const char* filename);
-int receiver(ApplicationLayer app, const char* port);
+int sender(ApplicationLayer app);
+int receiver(ApplicationLayer app);
 
-int create_control_packet(unsigned char * packet, const char* filename, unsigned char control, size_t filesize); 
-int create_data_packet(int sequence_no, int chunk_size, unsigned char *packet, unsigned char *buffer); 
+int create_control_packet(unsigned char * packet, const char* filename, const unsigned char control, size_t filesize);
+int create_data_packet(int sequence_no, unsigned char *chunk, size_t chunk_size, unsigned char *packet);
 
 #endif

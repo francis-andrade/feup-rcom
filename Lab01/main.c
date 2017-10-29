@@ -44,7 +44,7 @@ int main(int argc, char** argv){
       print_usage();
       return 3;
     }
-    app.filename = arvc[3];
+    app.filename = argv[3];
   }
   else {
     printf("Invalid sender/receiver argument.\n");
@@ -58,7 +58,7 @@ int main(int argc, char** argv){
   //enter sender/receiver process
   if (app.mode == SENDER){
     sender(app);
-  } else (app.mode == RECEIVER){
+  } else if (app.mode == RECEIVER){
     receiver(app);
   }
 
