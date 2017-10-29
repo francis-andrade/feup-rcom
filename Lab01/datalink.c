@@ -246,7 +246,7 @@ int llread(int fd, unsigned char *buffer) {
     } else if (sf.success == 0 && sf.control == ns) {
       build_frame_sup(A, rej, frame);
       send_frame(frame, fd);
-      break;
+      return -4;
     } else if (sf.success == 1 && sf.control == ns) {
       ll->sequenceNumber = !(ll->sequenceNumber);
       unsigned int i;
@@ -263,7 +263,7 @@ int llread(int fd, unsigned char *buffer) {
    }
   }
   free(frame);
-  printf("Leaving function llread(), sf.size=%d\n",sf.size); 
+  printf("Leaving function llread(), sf.size=%d, sf.control=0x%x, sf.success=%d\n",sf.size, sf.control, sf.success); 
   return sf.size;
 }
 
