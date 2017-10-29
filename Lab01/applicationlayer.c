@@ -85,7 +85,7 @@ int sender(const char* port, const char* filename){
 
   // send START packet (timeouts are accounted for within llwrite, using timeout_flag)
   packet_size = create_control_packet(packet, app.filename, AL_C_START, filesize);
-  printf("Sending Start-Packet...");
+  printf("Sending Start-Packet...\n");
   res = llwrite(app.fd, packet, packet_size);
   if (res<=0){
     printf("\t[Start-Packet]: llwrite() returned %d. Exiting...\n",res);
@@ -123,9 +123,9 @@ int sender(const char* port, const char* filename){
   printf("Attempting to disconnect...\n");
   res = llclose(app.fd, app.mode);
   if (res==0) 
-    printf("\tSuccessfully disconnected.");
+    printf("\tSuccessfully disconnected.\n");
   else 
-    printf("\tFailed to disconnect.");
+    printf("\tFailed to disconnect.\n");
   fclose(fp);
   return 0;
 }
@@ -282,9 +282,9 @@ int receiver(const char* port){
       printf("Attempting to disconnect...\n");
       res = llclose(app.fd, app.mode);
       if (res==0) 
-        printf("\tSuccessfully disconnected.");
+        printf("\tSuccessfully disconnected.\n");
       else 
-        printf("\tFailed to disconnect.");
+        printf("\tFailed to disconnect.\n");
       if (fp!=0)
         fclose(fp);     
       state = 3;
