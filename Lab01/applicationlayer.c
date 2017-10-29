@@ -45,8 +45,8 @@ int create_control_packet(unsigned char * packet, const char* filename, const un
 
 
 int sender(const char* port, const char* filename){
-  int res, packet_size, i;
-  size_t filesize;
+  int i, res=0, packet_size=0;
+  size_t filesize=0;
 
   printf("NSerial: Sender\n");
 
@@ -85,27 +85,42 @@ int sender(const char* port, const char* filename){
 
   // send START packet (timeouts are accounted for within llwrite, using timeout_flag)
   packet_size = create_control_packet(packet, app.filename, AL_C_START, filesize);
+  printf("Sending Start-Packet...");
   do {
     res = llwrite(app.fd, packet, packet_size);
-  } while (res<0);
+    printf("\t[Start-Packet]: llwrite() returned %d\n",res);
+  } while (res<=0);
+  printf("\t[Start-Packet]: Successfully sent.\n");
 
   // send all other packets
+  printf("Sending Data-Packets...");
   for (i=0; fread(chunk, CHUNK_SIZE, 1, fp)>0 ; ++i){ // read a chunk of the file
     packet_size = create_data_packet(i%256, chunk, CHUNK_SIZE, packet); // i = applayer seqN
     //loop
     do {  
       res = llwrite(app.fd, packet, packet_size);
+      printf("\t[Data-Packet %d]: llwrite() returned %d\n",i, res);
     } while (res<0);
+    printf("\t[Data-Packet %d]: Successfully sent.\n",i);
   }
+  printf("\tSuccessfully sent all Data-Packets\n");
   
   //send END packet
   packet_size = create_control_packet(packet, app.filename, AL_C_END, filesize);
+  printf("Sending End-Packet...");
   do {
     res = llwrite(app.fd, packet, packet_size);
-  } while (res<0);
+    printf("\t[End-Packet]: llwrite() returned %d\n",res);
+  } while (res<=0);
+  printf("\t[End-Packet]: Successfully sent.\n");
 
   //end runtime
-  llclose(app.fd, app.mode);
+  printf("Terminated. Attempting to disconnect...\n");
+  res = llclose(app.fd, app.mode);
+  if (res==0) 
+    printf("Successfully disconnected.");
+  else 
+    printf("Failed to disconnect.");
   fclose(fp);
   return 0;
 }
@@ -198,6 +213,7 @@ int receiver(const char* port){
               if (length != res-4)
                 printf("Warning: Packet-body bytes read (%d) differ from number expected (res-4, res=%d)\n",(int)length,res);
               fwrite(buffer+4, res-4, 1, fp);
+              ++packet_sn;
             }
           }
         }
