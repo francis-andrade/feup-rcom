@@ -28,8 +28,8 @@ int create_control_packet(unsigned char * packet, const char* filename, const un
   size_t temp = filesize;
 
   for (j=0; j<sizeof(size_t); ++j, ++i){
-    packet[i] = temp/256;
-    temp = temp%256;
+    packet[i] = (unsigned char)(temp/256);
+    temp = (unsigned char)(temp%256);
   }
 
   //2nd TLV - filename
@@ -211,8 +211,9 @@ int receiver(const char* port){
 
                 //TLV = ???
                 default:
-                  printf("\t\tError: packet seems to be of an unknown type..\n");
+                  printf("\t\tError: packet seems to be of an unknown type.. (%d bytes left to be processed)\n",res-i);
                   return -1;
+                break;
               }
             }
             printf("\t[Start-Packet]: Successfully received.\n");
