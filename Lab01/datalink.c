@@ -46,6 +46,7 @@ int open_port(const char *destination) {
 }
 
 int close_port(int fd) {
+  printf("Entered function close_port\n");
   // reset TC to old config
   if (tcsetattr(fd, TCSANOW, &oldtio) == -1) {
     perror("tcsetattr");
