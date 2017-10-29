@@ -25,7 +25,7 @@ int build_frame_data(unsigned char address, unsigned char control, unsigned char
   frame_to_stuff[i] = create_BCC(PACKET, length);
   int new_size = byte_stuff(&frame_to_stuff, length + 1);
   printf("build_frame_data(): Reallocating frame memory after byte stuffing...\n");
-  *FRAME = realloc(*FRAME, new_size + 5);
+  *FRAME = malloc(new_size + 5);
   printf("build_frame_data(): Reallocated *FRAME\n");
   (*FRAME)[0] = FLAG;
   (*FRAME)[1] = address;
