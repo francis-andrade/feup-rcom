@@ -48,6 +48,8 @@ int sender(const char* port, const char* filename){
   int res, packet_size, i;
   size_t filesize;
 
+  printf("NSerial: Sender\n");
+
   //init app
   ApplicationLayer app;
   app.mode = SENDER;
@@ -115,6 +117,8 @@ int receiver(const char* port){
   unsigned char * packet_start=0, * packet_end=0;
   int packet_start_size=0, packet_end_size=0, packet_sn=0;
   FILE *fp = 0;
+
+  printf("NSerial: Receiver\n");
 
   //init app
   ApplicationLayer app;
