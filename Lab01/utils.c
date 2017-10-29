@@ -134,6 +134,7 @@ State_Frame state_machine(int fd) {
           sf.data = datatmp_destuff;
           state = S_END;
         } else {
+          printf("Error with BCC2\n");
           sf.success = 0;
           return sf;
         }
