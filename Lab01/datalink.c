@@ -5,9 +5,11 @@
 
 struct termios oldtio, newtio;
 s_alarm *alm;
-linklayer *ll;
+linklayer * ll;
 
 int open_port(const char *destination) {
+  ll=malloc(sizeof(linklayer));
+  ll->baudrate=BAUDRATE;
   int fd = open(destination, O_RDWR | O_NOCTTY | O_NONBLOCK);
   if (fd < 0) {
     perror(destination);
@@ -22,7 +24,7 @@ int open_port(const char *destination) {
 
   //configurating newtio and setting input mode
   bzero(&newtio, sizeof(newtio));
-  newtio.c_cflag = BAUDRATE | CS8 | CLOCAL | CREAD;
+  newtio.c_cflag = ll->baudrate | CS8 | CLOCAL | CREAD;
   newtio.c_iflag = IGNPAR;
   newtio.c_oflag = 0;
   newtio.c_lflag = 0;
