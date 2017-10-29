@@ -173,95 +173,107 @@ int receiver(const char* port){
     // llread
     case 1:
       res = llread(app.fd, buffer);
+      // res>0 -> success!
       if (res>0){
+        //analyse the control byte
+        switch(buffer[0]){
         // is it a start packet?
-        if (buffer[0]==AL_C_START){
-          printf("Reading Start-Packet...\n");
-          //copy to packet_start
-          free(packet_start);
-          packet_start_size = res;
-          packet_start = (unsigned char *) malloc(packet_start_size);
-          memcpy(packet_start, buffer, packet_start_size);
-          //get filename, filesize, others
-          for (i=1; i<res; ++i){
-            unsigned char type = buffer[i++];
-            unsigned char length = buffer[i++];
-            //TLV = filename
-            if (type==AL_T_NAME){
-              printf("\t[Start-Packet]: Processing filename...\n");
-              app.filename = (char*) malloc(length);
-              for (j=0; j<length; ++j)
-                app.filename[j] = buffer[i++];
-              printf("\t[Start-Packet]: Filename = %s\n",app.filename);
+          case AL_C_START:
+            printf("Reading Start-Packet...\n");
+            //copy to packet_start
+            free(packet_start);
+            packet_start_size = res;
+            packet_start = (unsigned char *) malloc(packet_start_size);
+            memcpy(packet_start, buffer, packet_start_size);
+            //get filename, filesize, others
+            for (i=1; i<res; ){
+              printf("\t[Start-Packet]: Processing new TLV...\n");
+              unsigned char type = buffer[i++];
+              unsigned char length = buffer[i++];
+              switch (type){
+                //TLV = filename
+                case AL_T_NAME:
+                  printf("\t\t[Start-Packet]: Processing filename...\n");
+                  app.filename = (char*) malloc(length);
+                  for (j=0; j<length; ++j)
+                    app.filename[j] = buffer[i++];
+                  printf("\t\t[Start-Packet]: Filename = %s\n",app.filename);
+                break;
+
+                //TLV = filesize
+                case AL_T_SIZE:
+                  printf("\t\t[Start-Packet]: Processing filesize...\n");
+                  app.filesize = 0;
+                  for (j=0; j<length; ++j)
+                    app.filesize += app.filesize*256 + buffer[i++];
+                  printf("\t\t[Start-Packet]: Filesize = %ld\n",app.filesize);
+                break;
+
+                //TLV = ???
+                default:
+                  printf("\t\tError: packet seems to be of an unknown type..\n");
+                  return -1;
+              }
             }
-            //TLV = filesize
-            else if (type==AL_T_SIZE){
-              printf("\t[Start-Packet]: Processing filesize...\n");
-              app.filesize = 0;
-              for (j=0; j<length; ++j)
-                app.filesize += app.filesize*256 + buffer[i++];
-              printf("\t[Start-Packet]: Filesize = %d\n",app.filesize);
-            }
-            //TLV = ???
-            else {
-              printf("\tError: packet seems to be of an unknown type..\n");
-              return -1;
-            }
-          }
-          printf("\t[Start-Packet]: Successfully received.\n");
-        }
+            printf("\t[Start-Packet]: Successfully received.\n");
+          break;
         // is it a data packet?
-        else if (buffer[0]==AL_C_DATA){
-          printf("Reading Data-Packet[%d]...\n",packet_sn);
-          if (res<5)
-            printf("\tError: Data-Packet has a length of less than 5. (%d)\n",res);
-          else {
-            // packet sequence number
-            if (buffer[1]!=packet_sn)
-              printf("\tWarning: Expected packet sequence number %d. Received %d\n",packet_sn, buffer[1]);
+          case AL_C_DATA:
+            printf("Reading Data-Packet[%d]...\n",packet_sn);
+            if (res<5)
+              printf("\tError: Data-Packet has a length of less than 5. (%d)\n",res);
             else {
-              size_t length = ((size_t)buffer[2])*256 + ((size_t)buffer[3]);
-              if (length != res-4)
-                printf("\tWarning: Packet-body bytes read (%d) differ from number expected (res-4, res=%d)\n",(int)length,res);
-              fwrite(buffer+4, res-4, 1, fp);
-              ++packet_sn;
+              // packet sequence number
+              if (buffer[1]!=packet_sn)
+                printf("\tWarning: Expected packet sequence number %d. Received %d\n",packet_sn, buffer[1]);
+              else {
+                size_t length = ((size_t)buffer[2])*256 + ((size_t)buffer[3]);
+                if (length != res-4)
+                  printf("\tWarning: Packet-body bytes read (%d) differ from number expected (res-4, res=%d)\n",(int)length,res);
+                fwrite(buffer+4, res-4, 1, fp);
+                ++packet_sn;
+              }
             }
-          }
-        }
+          break;
         // is it an end packet?
-        else if (buffer[0]==AL_C_END){
-          printf("Reading End-Packet...\n");
-          //copy to packet_end
-          free(packet_end);
-          packet_end_size = res;
-          packet_end = (unsigned char *) malloc(packet_end_size);
-          memcpy(packet_end, buffer, packet_end_size);
-          //check whether packet_end == packet_start
-          if (memcmp(packet_start+1, packet_end+1, packet_end_size-1)!=0) //skip control byte
-            printf("\tWarning: Start-Packet differs from End-Packet\n");
-          //copy current file to another file
-          fclose(fp);
-          if (!rename(TMP_FILENAME, app.filename))
-            printf("\tSuccessfully transfered %s.\n",app.filename);
-          else 
-            printf("\tError: Failed to change filename of temporary file.\n");
-          free(app.filename);
-          state=2;
+          case AL_C_END:
+            printf("Reading End-Packet...\n");
+            //copy to packet_end
+            free(packet_end);
+            packet_end_size = res;
+            packet_end = (unsigned char *) malloc(packet_end_size);
+            memcpy(packet_end, buffer, packet_end_size);
+            //check whether packet_end == packet_start
+            if (memcmp(packet_start+1, packet_end+1, packet_end_size-1)!=0) //skip control byte
+              printf("\tWarning: Start-Packet differs from End-Packet\n");
+            //copy current file to another file
+            fclose(fp);
+            if (!rename(TMP_FILENAME, app.filename))
+              printf("\tSuccessfully transfered %s.\n",app.filename);
+            else 
+              printf("\tError: Failed to change filename of temporary file.\n");
+            free(app.filename);
+            state=2;
+          break;
         }
       }
+      // res==-2 -> received a SET
       else if (res==-2){
         state=0;
         printf("llread() retuned: -2 (we have received a SET, so back to llopen())\n");
       }
+      // res==-3 -> received a DISC
       else if (res==-3){
         state=2;
       }
+      // res==??? -> undefined behaviour
       else {
         printf("Error: llread() retuned: %d\n",res);
         return -2;
       }
     break;
 
+    // llclose()
     case 2: 
       printf("Attempting to disconnect...\n");
       res = llclose(app.fd, app.mode);
