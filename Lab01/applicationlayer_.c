@@ -263,7 +263,12 @@ int receiver(const char* port){
     break;
 
     case 2: 
-      llclose(app.fd, app.mode);
+      printf("Attempting to disconnect...\n");
+      res = llclose(app.fd, app.mode);
+      if (res==0) 
+        printf("\tSuccessfully disconnected.");
+      else 
+        printf("\tFailed to disconnect.");
       if (fp!=0)
         fclose(fp);     
       state = 3;
