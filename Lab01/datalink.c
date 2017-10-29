@@ -128,6 +128,7 @@ int llopen(const char *port, int status) {
   State_Frame sf;
 
   if (status == SENDER){  //sender
+    ll->sequenceNumber=0;
     unsigned char *frame = malloc(5);
     build_frame_sup(A, C_SET, frame);
     //ALARM
@@ -149,6 +150,7 @@ int llopen(const char *port, int status) {
     free(frame);
     return fd;
   } else { //receiver
+    ll->sequenceNumber=0;
     do {
       sf = state_machine(fd);
     } while (!sf.success || sf.control != C_SET); 
