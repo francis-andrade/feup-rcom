@@ -67,7 +67,7 @@ State_Frame state_machine(int fd) {
     if (read(fd, &ch, 1) <= 0)
       continue;
 
-    println("State=%d\n",state);
+    printf("State=%d\n",state);
     switch (state) {
     case S_START:
       if (ch == FLAG) {
