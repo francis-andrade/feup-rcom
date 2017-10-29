@@ -266,6 +266,10 @@ int receiver(const char* port){
       else if (res==-3){
         state=2;
       }
+      // res==-4 -> retry
+      else if (res==-4){
+        break;
+      }
       // res==??? -> undefined behaviour
       else {
         printf("Error: llread() retuned: %d\n",res);
