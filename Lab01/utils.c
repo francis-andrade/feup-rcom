@@ -5,7 +5,7 @@
 s_alarm *alm;
 
 int build_frame_sup(unsigned char address, unsigned char control, unsigned char *FRAME) {
-  printf("Entered build_frame_sup() with address=0x%x and control=0x%x\n",address,control);  
+  //printf("Entered build_frame_sup() with address=0x%x and control=0x%x\n",address,control);  
   FRAME[0] = FLAG;
   FRAME[1] = address;
   FRAME[2] = control;
@@ -15,7 +15,7 @@ int build_frame_sup(unsigned char address, unsigned char control, unsigned char 
 }
 
 int build_frame_data(unsigned char address, unsigned char control, unsigned char **FRAME, unsigned char *PACKET, int length) {
-  printf("Entered build_frame_data() with address=%c, control=%c and length=%d\n",address,control,length);
+  //printf("Entered build_frame_data() with address=%c, control=%c and length=%d\n",address,control,length);
   unsigned char *frame_to_stuff = malloc(length + 1);
   int i;
   for (i = 0; i < length; i++) {
@@ -24,26 +24,26 @@ int build_frame_data(unsigned char address, unsigned char control, unsigned char
 
   frame_to_stuff[i] = create_BCC(PACKET, length);
   int new_size = byte_stuff(&frame_to_stuff, length + 1);
-  printf("build_frame_data(): Reallocating frame memory after byte stuffing...\n");
+  //printf("build_frame_data(): Reallocating frame memory after byte stuffing...\n");
   *FRAME = malloc(new_size + 5);
-  printf("build_frame_data(): Reallocated *FRAME\n");
+  //printf("build_frame_data(): Reallocated *FRAME\n");
   (*FRAME)[0] = FLAG;
   (*FRAME)[1] = address;
   (*FRAME)[2] = control;
   (*FRAME)[3] = (*FRAME)[1] ^ (*FRAME)[2];
-  printf("build_frame_data(): Defined the first 4 elements of *FRAME\n");
+  //printf("build_frame_data(): Defined the first 4 elements of *FRAME\n");
   for (i = 0; i < new_size; i++) {
     (*FRAME)[i + 4] = frame_to_stuff[i];
   }
   (*FRAME)[i + 5] = FLAG;
-  printf("Freeing frame_to_stuff memory...\n");
+  //printf("Freeing frame_to_stuff memory...\n");
   free(frame_to_stuff);
-  printf("Exiting build_frame_data() with newsize=%d\n",new_size);  
+  //printf("Exiting build_frame_data() with newsize=%d\n",new_size);  
   return new_size + 5; //tamanho total da trama
 }
 
 unsigned char create_BCC(unsigned char *PACKET, int size) {
-  printf("Entered create_BCC() with size=%d\n",size);  
+  //printf("Entered create_BCC() with size=%d\n",size);  
   unsigned char res = 0;
   int i;
   for (i = 0; i < size; i++) {
@@ -57,19 +57,20 @@ unsigned char create_BCC(unsigned char *PACKET, int size) {
 State_Frame state_machine(int fd) {
   printf("Entered state_machine()\n");
 
-  unsigned char ch, datatmp[255];
+  unsigned char ch;
+  unsigned char * datatmp = (unsigned char *) malloc(255);
   State state = S_START;
   int i = 0;
   State_Frame sf;
   sf.success = 1;
   int curr_count = alm->count;
-  printf("Entering state machine cycle\n");
+  //printf("Entering state machine cycle\n");
   //run until we reach the frame's end or until being timed-out
   while (state != S_END && curr_count == alm->count) {
     if (read(fd, &ch, 1) <= 0)
       continue;
 
-    printf("State=%d\n",state);
+    //printf("State=%d\n",state);
     switch (state) {
     case S_START:
       if (ch == FLAG) {
@@ -122,19 +123,14 @@ State_Frame state_machine(int fd) {
     case S_DN:
       datatmp[i] = ch;
       if (ch == FLAG) {
-        unsigned char *datatmp_destuff = (unsigned char *)malloc(i - 2);
-        unsigned int ii;
-        for (ii = 0; ii < i - 2; ii++) {
-          datatmp_destuff[ii] = datatmp[ii];
-        }
         printf("Data frame received. Destuffing frame data...\n");        
-        byte_destuff(&datatmp_destuff, i - 2);
-        if (datatmp[i - 1] == create_BCC(datatmp_destuff, i - 2)) {
-          sf.size = i - 2;
-          sf.data = datatmp_destuff;
+        byte_destuff(&datatmp, i);
+        if (datatmp[i - 1] == create_BCC(datatmp, i-1)) {
+          sf.size = i - 1;
+          sf.data = datatmp;
           state = S_END;
         } else {
-          printf("Error with BCC2\n");
+          printf("Error with BCC2, exiting state machine\n");
           sf.success = 0;
           return sf;
         }
