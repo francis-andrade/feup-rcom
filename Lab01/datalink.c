@@ -45,7 +45,7 @@ int close_port(int fd) {
   // reset TC to old config
   if (tcsetattr(fd, TCSANOW, &oldtio) == -1) {
     perror("tcsetattr");
-    exit(-1); //TODO averiguar se podemos ter o -1 aqui
+    exit(-1);
   }
   // close
   close(fd);
@@ -53,7 +53,6 @@ int close_port(int fd) {
 }
 
 int byte_stuff(unsigned char **buf, int size) {
-  //TODO assegurar que também podemos incluir o bcc aqui
   int i, newsize = size;
   unsigned char *res;
 
@@ -84,7 +83,6 @@ int byte_stuff(unsigned char **buf, int size) {
 }
 
 int byte_destuff(unsigned char **buf, int size) {
-  //TODO assegurar que também podemos incluir o bcc aqui
   unsigned char *res;
   int i, newsize = size;
   int j = 0;
@@ -207,20 +205,13 @@ int llwrite(int fd, unsigned char *buffer, int length) {
   }
   free(frame);
   return size;
-
-  //TODO obter trama
-  //TODO enviar trama
-  //TODO alarme+timeout
-  //TODO esperar pelo RR/REJ
-  //TODO caso REJ, reenviar de acordo com o pedido
 }
 
 int llread(int fd, unsigned char *buffer) {
   State_Frame sf;
   unsigned char *frame = malloc(5);
-  //TODO se receber um set aquando da primeira execucao, mandar ua para reestabelecer execucao
-  //TODO fazer byte unstuffing e mandar para o buffer
   unsigned char ns, rr, rej;
+
   if (ll->sequenceNumber == 0) {
     ns = C_DATA0;
     rej = C_REJ0;
@@ -252,9 +243,6 @@ int llread(int fd, unsigned char *buffer) {
   }
   free(frame);
   return sf.size;
-
-  //TODO ler trama
-  //TODO enviar RR/REJ
 }
 
 int llclose(int fd, int status) {
