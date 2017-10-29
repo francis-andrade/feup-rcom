@@ -86,41 +86,46 @@ int sender(const char* port, const char* filename){
   // send START packet (timeouts are accounted for within llwrite, using timeout_flag)
   packet_size = create_control_packet(packet, app.filename, AL_C_START, filesize);
   printf("Sending Start-Packet...");
-  do {
-    res = llwrite(app.fd, packet, packet_size);
-    printf("\t[Start-Packet]: llwrite() returned %d\n",res);
-  } while (res<=0);
-  printf("\t[Start-Packet]: Successfully sent.\n");
+  res = llwrite(app.fd, packet, packet_size);
+  if (res<=0){
+    printf("\t[Start-Packet]: llwrite() returned %d. Exiting...\n",res);
+    return -1;
+  }
+  else 
+    printf("\t[Start-Packet]: Successfully sent.\n");
 
   // send all other packets
   printf("Sending Data-Packets...");
   for (i=0; fread(chunk, CHUNK_SIZE, 1, fp)>0 ; ++i){ // read a chunk of the file
     packet_size = create_data_packet(i%256, chunk, CHUNK_SIZE, packet); // i = applayer seqN
-    //loop
-    do {  
-      res = llwrite(app.fd, packet, packet_size);
-      printf("\t[Data-Packet %d]: llwrite() returned %d\n",i, res);
-    } while (res<0);
-    printf("\t[Data-Packet %d]: Successfully sent.\n",i);
+    res = llwrite(app.fd, packet, packet_size);
+    if (res<=0){
+      printf("\t[Data-Packet %d]: llwrite() returned %d. Exiting...\n",i,res);
+      return -1;
+    }
+    else 
+      printf("\t[Data-Packet %d]: Successfully sent.\n",i);
   }
   printf("\tSuccessfully sent all Data-Packets\n");
   
   //send END packet
   packet_size = create_control_packet(packet, app.filename, AL_C_END, filesize);
   printf("Sending End-Packet...");
-  do {
-    res = llwrite(app.fd, packet, packet_size);
-    printf("\t[End-Packet]: llwrite() returned %d\n",res);
-  } while (res<=0);
-  printf("\t[End-Packet]: Successfully sent.\n");
+  res = llwrite(app.fd, packet, packet_size);
+  if (res<=0){
+    printf("\t[End-Packet]: llwrite() returned %d. Exiting...\n",res);
+    return -1;
+  }
+  else 
+    printf("\t[End-Packet]: Successfully sent.\n");
 
   //end runtime
-  printf("Terminated. Attempting to disconnect...\n");
+  printf("Attempting to disconnect...\n");
   res = llclose(app.fd, app.mode);
   if (res==0) 
-    printf("Successfully disconnected.");
+    printf("\tSuccessfully disconnected.");
   else 
-    printf("Failed to disconnect.");
+    printf("\tFailed to disconnect.");
   fclose(fp);
   return 0;
 }
@@ -147,9 +152,9 @@ int receiver(const char* port){
       //open serial bus
       app.fd = llopen(app.port, app.mode);
       if (app.fd>0)
-        printf("Successfully opened port.\n");
+        printf("Successfully opened port %s\n",app.port);
       else {
-        printf("Failed to open port.\n");
+        printf("Failed to open port %s\n",app.port);
         break;
       }
         
@@ -179,19 +184,21 @@ int receiver(const char* port){
           memcpy(packet_start, buffer, packet_start_size);
           //get filename, filesize, others
           for (i=1; i<res; ++i){
-            unsigned char type = buffer[i+1];
-            unsigned char length = buffer[i+2];
+            unsigned char type = buffer[i++];
+            unsigned char length = buffer[i++];
             //TLV = filename
             if (type==AL_T_NAME){
+              printf("\t[Start-Packet]: Processing filename...\n");
               app.filename = (char*) malloc(length);
               for (j=0; j<length; ++j)
-                app.filename[j] = buffer[i+j];
+                app.filename[j] = buffer[i++];
+              printf("\t\t[Start-Packet]: Filename = %s\n",app.filename);
             }
             //TLV = filesize
             else if (type==AL_T_SIZE){
               app.filesize = 0;
               for (j=0; j<length; ++j)
-                app.filesize += app.filesize*256 + buffer[i+j];
+                app.filesize += app.filesize*256 + buffer[i++];
             }
             //TLV = ???
             else {
@@ -199,6 +206,7 @@ int receiver(const char* port){
               return -1;
             }
           }
+          printf("\t[Start-Packet]: Successfully received.\n");
         }
         // is it a data packet?
         else if (buffer[0]==AL_C_DATA){
