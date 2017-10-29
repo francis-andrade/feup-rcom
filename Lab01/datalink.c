@@ -5,6 +5,7 @@
 
 struct termios oldtio, newtio;
 s_alarm * alm;
+linklayer * ll;
 
 int open_port(const char* destination){
     int fd = open(destination, O_RDWR | O_NOCTTY | O_NONBLOCK);
@@ -48,7 +49,7 @@ int close_port(int fd){
     return 0;
 }
 
-void byte_stuff(unsigned char** buf, int size){
+int byte_stuff(unsigned char ** buf, int size){
   //TODO assegurar que também podemos incluir o bcc aqui
   int i, newsize = size;
   unsigned char *res;
@@ -76,6 +77,7 @@ void byte_stuff(unsigned char** buf, int size){
 
   free(*buf);
   *buf = res;
+  return newsize;
 }
 
 int byte_destuff(unsigned char** buf, int size){
@@ -98,7 +100,7 @@ int byte_destuff(unsigned char** buf, int size){
     j++;
   }
 
-  *res = (unsigned char *) realloc(res, j);
+  res = (unsigned char *) realloc(res, j);
   free(*buf);
   *buf=res;
   return j;
@@ -124,18 +126,22 @@ int llopen(const char* port, int status){
     build_frame_sup(A, C_SET, frame);
     //ALARM
       init_alarm();
-      arm_alarm(3,3, fd, frame);
+      arm_alarm(3,3);
       do{
+	//tcflush(fd, TCIOFLUSH);//CHECK IF THIS IS CORRECT
+	if(alm->timeout_flag==1){
+		alm->timeout_flag=0;
+		send_frame(frame,fd);	
+	}
         sf = state_machine(fd);
-      } while ((!sf.success || sf.control != C_UA) && alm->timeout_flag!=1);//I THINK THERE IS A BUG WITH sf.success
+      } while ((!sf.success || sf.control != C_UA) && alm->count<alm->retries);//I THINK THERE IS A BUG WITH sf.success
       disarm_alarm();
-      if(alm->timeout_flag==1){
+      if(alm->count==alm->retries){
 	printf("Error: Could not open properly\n");
-	return 0;
+	return -1;
       }
-   
-      build_frame_sup(A, C_UA, frame);
-      send_frame(frame, fd);
+      return fd;
+     
   } 
   else { //receiver
     do{
@@ -144,6 +150,7 @@ int llopen(const char* port, int status){
     unsigned char * frame;
     build_frame_sup(A, C_UA, frame);
     send_frame(frame, fd);
+    return fd;
     
   }
 
@@ -152,7 +159,48 @@ int llopen(const char* port, int status){
 }
 
 int llwrite(int fd, unsigned char* buffer, int length){
-  unsigned char frame[MAX_SIZE];
+      State_Frame sf;
+      unsigned char rr, rej, data;
+      if(ll->sequenceNumber==0){
+	rr=C_RR1;
+	rej=C_REJ0;
+	data=C_DATA0;
+      }
+      else{
+	rr=C_RR0;
+	rej=C_REJ1;
+	data=C_DATA1;
+      }
+      unsigned char * frame;
+      int size=build_frame_data(A, data, frame, buffer, length);
+  
+      //ALARM
+      init_alarm();
+      int send=1;
+      while(send){
+      arm_alarm(3,3);
+      do{
+	//tcflush(fd, TCIOFLUSH);//CHECK IF THIS IS CORRECT
+	if(alm->timeout_flag==1){
+		alm->timeout_flag=0;
+		send_frame(frame, fd);
+	}
+        sf = state_machine(fd);
+      } while ((!sf.success || sf.control != rr || sf.control != rej ) && alm->count<alm->retries);//I THINK THERE IS A BUG WITH sf.success
+      disarm_alarm();
+      if(alm->count==alm->retries){
+	printf("Error: Could not open properly\n");
+	return -1;
+      }
+      else if(sf.control==rr){
+	ll->sequenceNumber=(ll->sequenceNumber+1)%2;
+	return size;
+     }
+     else{
+		send=1;	
+	}
+     }
+
   
   //TODO obter trama
   //TODO enviar trama
@@ -188,14 +236,19 @@ int llclose(int fd, int status){
 
       //ALARM
       init_alarm();
-      arm_alarm(3,3, fd, frame);
+      arm_alarm(3,3);
       do{
+	//tcflush(fd, TCIOFLUSH);//CHECK IF THIS IS CORRECT
+	if(alm->timeout_flag==1){
+		alm->timeout_flag=0;
+		send_frame(frame,fd);	
+	}
         sf = state_machine(fd);
-      } while ((!sf.success || sf.control != C_DISC) && alm->timeout_flag!=1);//I THINK THERE IS A BUG WITH sf.success
+      } while ((!sf.success || sf.control != C_DISC) && alm->count<alm->retries);//I THINK THERE IS A BUG WITH sf.success
       disarm_alarm();
-      if(alm->timeout_flag==1){
+      if(alm->count==alm->retries){
 	printf("Error: Could not close properly\n");
-	return 0;
+	return -1;
       }
    
       build_frame_sup(A, C_UA, frame);
@@ -203,14 +256,18 @@ int llclose(int fd, int status){
     } else {
       //ALARM
       init_alarm();
-      arm_alarm(3,3, fd, frame);
+      arm_alarm(3,3);
       do{
+	if(alm->timeout_flag==1){
+		alm->timeout_flag=0;
+		send_frame(frame,fd);	
+	}
         sf = state_machine(fd);
-      } while ((!sf.success || sf.control != C_UA) && alm->timeout_flag!=1);//I THINK THERE IS A BUG WITH sf.success
+      } while ((!sf.success || sf.control != C_UA) && alm->count<alm->retries);//I THINK THERE IS A BUG WITH sf.success
       disarm_alarm();
-      if(alm->timeout_flag==1){
+      if(alm->count==alm->retries){
 	printf("Error: Could not close properly\n");
-	return 0;
+	return -1;
       }
 
     }

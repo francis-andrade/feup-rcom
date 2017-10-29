@@ -13,16 +13,18 @@
 #define TIMEOUT_DURATION 3
 #define TIMEOUT_TRIES 3
 
-struct linklayer{
+typedef struct{
   char port[20];
   int baudrate;
   unsigned int sequenceNumber;
   unsigned int timeout;
   unsigned int numTransmissions;
   char frame[MAX_SIZE];
-};
+} linklayer;
 
-void byte_stuff(unsigned char** buf, int size);
+extern linklayer * ll;
+
+int byte_stuff(unsigned char** buf, int size);
 int byte_destuff(unsigned char** buf, int size);
 int send_frame(unsigned char* frame, int fd);
 int open_port(const char* destination);

@@ -14,23 +14,30 @@ int build_frame_sup(unsigned char address, unsigned char control, unsigned char 
   return 5;
 }
 
-int build_frame_data(unsigned char address, unsigned char control, unsigned char * FRAME, unsigned char * PACKET){
-  int p_size = 256*PACKET[2] + PACKET[3] + 4;
-  int f_size = p_size+6;
+int build_frame_data(unsigned char address, unsigned char control, unsigned char * FRAME, unsigned char * PACKET, int length){
+  
+  unsigned char * frame_to_stuff=malloc(length+1);
+  int i;
+  for (i = 0; i < length; i++){
+      frame_to_stuff[i]=PACKET[i];
+  }
+	
+  
+  frame_to_stuff[i] = create_BCC(PACKET, length);
+  int new_size=byte_stuff(& frame_to_stuff, length+1);
 
-  FRAME = malloc(f_size);
+
+  FRAME = malloc(new_size+5);
   FRAME[0] = FLAG;
   FRAME[1] = address;
   FRAME[2] = control;
   FRAME[3] = FRAME[1] ^ FRAME[2];
-
-  int i;
-  for (i = 0; i < p_size; i++)
-      FRAME[i+4] = PACKET[i];
-
-  FRAME[i+4] = create_BCC(PACKET, p_size);
+  for(i=0;i<new_size;i++){
+	FRAME[i+4]=frame_to_stuff[i];
+  }
   FRAME[i+5] = FLAG;
-  return f_size; //tamanho total da trama
+  free(frame_to_stuff);
+  return new_size+5; //tamanho total da trama
 }
 
 unsigned char create_BCC(unsigned char * PACKET, int size){
