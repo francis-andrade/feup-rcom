@@ -44,15 +44,33 @@ int create_control_packet(unsigned char * packet, const char* filename, const un
 }
 
 
-int sender(ApplicationLayer app){
+int sender(const char* port, const char* filename){
   int res, packet_size, i;
   size_t filesize;
 
+  //init app
+  ApplicationLayer app;
+  app.mode = SENDER;
+  app.port = (char*)port;
+  app.filename = (char*)filename;
+
   // open serial bus fd
-  app.fd = llopen(app.port, SENDER);
+  app.fd = llopen(app.port, app.mode);
+  if (app.fd>0)
+    printf("Successfully opened port.\n");
+  else {
+    printf("Failed to open port. Returned code %d\n",app.fd);
+    return -1;
+  }
 
   //open file (e.g. penguin)
   FILE *fp = fopen(app.filename, "rb");
+  if (fp>0)
+    printf("Successfully opened file %s.\n",app.filename);
+  else {
+    printf("Failed to open file %s.\n",app.filename);
+    return -1;
+  }
 
   // get the filesize
   fseek(fp, 0, SEEK_END);
@@ -85,25 +103,30 @@ int sender(ApplicationLayer app){
   } while (res<0);
 
   //end runtime
-  llclose(app.fd, SENDER);
+  llclose(app.fd, app.mode);
   fclose(fp);
   return 0;
 }
 
 
-int receiver(ApplicationLayer app){
+int receiver(const char* port){
   int i, j, res;
   unsigned char buffer[256];  //TODO this 256 should be defined in header
   unsigned char * packet_start=0, * packet_end=0;
   int packet_start_size=0, packet_end_size=0, packet_sn=0;
-  FILE *fp;
+  FILE *fp = 0;
+
+  //init app
+  ApplicationLayer app;
+  app.mode = RECEIVER;
+  app.port = (char*)port;
 
   int state = 0;
   while (state!=3) switch (state){
     // llopen - le init
     case 0:
       //open serial bus
-      app.fd = llopen(app.port, RECEIVER);
+      app.fd = llopen(app.port, app.mode);
       if (app.fd>0)
         printf("Successfully opened port.\n");
       else {
@@ -188,7 +211,10 @@ int receiver(ApplicationLayer app){
           //copy current file to another file
           fclose(fp);
           if (!rename(TMP_FILENAME, app.filename))
+            printf("Successfully transfered %s.\n",app.filename);
+          else 
             printf("Error: Failed to change filename of temporary file.\n");
+          free(app.filename);
           state=2;
         }
       }
@@ -206,7 +232,7 @@ int receiver(ApplicationLayer app){
     break;
 
     case 2: 
-      llclose(app.fd, RECEIVER);
+      llclose(app.fd, app.mode);
       if (fp!=0)
         fclose(fp);     
       state = 3;

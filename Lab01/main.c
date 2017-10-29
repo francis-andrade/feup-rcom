@@ -14,7 +14,8 @@ void print_usage(){
 }
 
 int main(int argc, char** argv){
-  ApplicationLayer app;
+  //init alarm
+  init_alarm();
   
   //check for argc
   if (argc != 3 && argc != 4) {
@@ -30,36 +31,24 @@ int main(int argc, char** argv){
     print_usage();
     return 2;
   }
-  app.port = argv[1];
 
   //check for argument sender / receiver
   if ((strcmp("receiver", argv[2]) == 0)){
-    app.mode = RECEIVER;
+    receiver(argv[1]);
   }
   else if ((strcmp("sender", argv[2]) == 0)){
-    app.mode = SENDER;
     //check for sender's file arg
     if (argc != 4){
       printf("Invalid sender arguments. Needs filename of file to send.\n");
       print_usage();
       return 3;
     }
-    app.filename = argv[3];
+    sender(argv[1], argv[3]);
   }
   else {
     printf("Invalid sender/receiver argument.\n");
     print_usage();
     return 4;
-  }
-
-  //init alarm
-  init_alarm();
-
-  //enter sender/receiver process
-  if (app.mode == SENDER){
-    sender(app);
-  } else if (app.mode == RECEIVER){
-    receiver(app);
   }
 
   //done.
