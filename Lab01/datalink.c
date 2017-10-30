@@ -196,8 +196,7 @@ int llwrite(int fd, unsigned char *buffer, int length) {
   int size = build_frame_data(A, data, frame, buffer, length);
 
   //ALARM
-  int send = 1;
-  while (send) {
+  while (1) {
     arm_alarm(3, 3);
     do {
       if (alm->timeout_flag == 1) {
@@ -212,13 +211,11 @@ int llwrite(int fd, unsigned char *buffer, int length) {
       free(frame);
       return -1;
     } else if (sf.control == rr) {
-      ll->sequenceNumber = (ll->sequenceNumber + 1) % 2;
+      ll->sequenceNumber = !(ll->sequenceNumber);
       free(frame);
       return size;
     }
   }
-  free(frame);
-  return size;
 }
 
 int llread(int fd, unsigned char *buffer) {
