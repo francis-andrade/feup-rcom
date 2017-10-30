@@ -46,7 +46,6 @@ int create_control_packet(unsigned char * packet, const char* filename, const un
 
 int sender(const char* port, const char* filename){
   int i, res=0, packet_size=0;
-  size_t filesize=0;
 
   printf("NSerial: Sender\n");
 
@@ -76,15 +75,16 @@ int sender(const char* port, const char* filename){
 
   // get the filesize
   fseek(fp, 0, SEEK_END);
-  filesize = ftell(fp);
+  app.filesize = ftell(fp);
   rewind(fp);
+  printf("File '%s' is of size %ld",app.filename, app.filesize);
 
   // init chunk, packet arrays
   unsigned char chunk[CHUNK_SIZE];
   unsigned char packet[CHUNK_SIZE+4];
 
   // send START packet (timeouts are accounted for within llwrite, using timeout_flag)
-  packet_size = create_control_packet(packet, app.filename, AL_C_START, filesize);
+  packet_size = create_control_packet(packet, app.filename, AL_C_START, app.filesize);
   printf("Sending Start-Packet...\n");
   res = llwrite(app.fd, packet, packet_size);
   if (res<=0){
@@ -109,7 +109,7 @@ int sender(const char* port, const char* filename){
   printf("\tSuccessfully sent all Data-Packets\n");
   
   //send END packet
-  packet_size = create_control_packet(packet, app.filename, AL_C_END, filesize);
+  packet_size = create_control_packet(packet, app.filename, AL_C_END, app.filesize);
   printf("Sending End-Packet...");
   res = llwrite(app.fd, packet, packet_size);
   if (res<=0){
