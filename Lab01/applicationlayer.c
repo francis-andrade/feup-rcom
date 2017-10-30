@@ -30,7 +30,7 @@ int create_control_packet(unsigned char * packet, const char* filename, const un
     packet[i+j] = (unsigned char)(temp%256);
     temp = (unsigned char)(temp/256);
   }
-  i+=8;
+  i+=sizeof(size_t);
 
   //2nd TLV - filename
   packet[i++] = AL_T_NAME;
@@ -187,7 +187,7 @@ int receiver(const char* port){
             memcpy(packet_start, buffer, packet_start_size);
             //get filename, filesize, others
             for (i=1; i<res; ){
-              printf("\t[Start-Packet]: Processing new TLV...\n");
+              printf("\t[Start-Packet]: Processing new TLV... (%d bytes left)\n",res-i);
               unsigned char type = buffer[i++];
               unsigned char length = buffer[i++];
               switch (type){
@@ -205,13 +205,13 @@ int receiver(const char* port){
                   printf("\t\t[Start-Packet]: Processing filesize...\n");
                   app.filesize = 0;
                   for (j=0; j<length; ++j)
-                    app.filesize += app.filesize*256 + buffer[i++];
+                    app.filesize += app.filesize*256 + (size_t)(buffer[i++]);
                   printf("\t\t[Start-Packet]: Filesize = %ld\n",app.filesize);
                 break;
 
                 //TLV = ???
                 default:
-                  printf("\t\tError: packet seems to be of an unknown type.. (%d bytes left to be processed)\n",res-i);
+                  printf("\t\tError: packet seems to be of an unknown type..\n");
                   return -1;
                 break;
               }
