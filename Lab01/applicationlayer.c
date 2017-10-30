@@ -1,6 +1,9 @@
 #include "applicationlayer.h"
 #include "datalink.h"
+#include "utils.h"
+#include "alarm.h"
 
+ApplicationLayer app;
 
 int create_data_packet(int sequence_no, unsigned char *chunk, size_t chunk_size, unsigned char *packet){
   // packet header
@@ -50,13 +53,18 @@ int create_control_packet(unsigned char * packet, const char* filename, const un
 }
 
 
-int sender(const char* port, const char* filename){
+int sender(const char* port, const int baudrate, const int max_retries, const int timeout, const char* filename){
   int i, res=0, packet_size=0;
 
   printf("NSerial: Sender\n");
 
+  //init linklayer
+  ll.baudrate = baudrate;
+
+  //init alarm
+  init_alarm(timeout, max_retries);
+
   //init app
-  ApplicationLayer app;
   app.mode = SENDER;
   app.port = (char*)port;
   app.filename = (char*)filename;
@@ -149,7 +157,7 @@ int sender(const char* port, const char* filename){
 }
 
 
-int receiver(const char* port){
+int receiver(const char* port, const int baudrate, const int max_retries, const int timeout){
   int i, j, res;
   unsigned char buffer[256];  //TODO this 256 should be defined in header
   unsigned char * packet_start=0, * packet_end=0;
@@ -158,8 +166,13 @@ int receiver(const char* port){
 
   printf("NSerial: Receiver\n");
 
+  //init linklayer
+  ll.baudrate = baudrate;
+
+  //init alarm
+  init_alarm(timeout, max_retries);
+
   //init app
-  ApplicationLayer app;
   app.mode = RECEIVER;
   app.port = (char*)port;
 
@@ -182,6 +195,7 @@ int receiver(const char* port){
       if (fp>0){
         printf("Opened temporary file '%s'\n",TMP_FILENAME);
         state=1;
+        packet_sn=0;
       }
       else {
         printf("Failed to open temporary file '%s'\n",TMP_FILENAME);

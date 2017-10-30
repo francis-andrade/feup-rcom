@@ -4,12 +4,9 @@
 #include "alarm.h"
 
 struct termios oldtio, newtio;
-s_alarm *alm;
-linklayer * ll;
+LinkLayer ll;
 
 int open_port(const char *destination) {
-  ll=malloc(sizeof(linklayer));
-  ll->baudrate=BAUDRATE;
   int fd = open(destination, O_RDWR | O_NOCTTY | O_NONBLOCK);
   if (fd < 0) {
     perror(destination);
@@ -24,7 +21,7 @@ int open_port(const char *destination) {
 
   //configurating newtio and setting input mode
   bzero(&newtio, sizeof(newtio));
-  newtio.c_cflag = ll->baudrate | CS8 | CLOCAL | CREAD;
+  newtio.c_cflag = ll.baudrate | CS8 | CLOCAL | CREAD;
   newtio.c_iflag = IGNPAR;
   newtio.c_oflag = 0;
   newtio.c_lflag = 0;
@@ -129,15 +126,15 @@ int llopen(const char *port, int status) {
   State_Frame sf;
 
   if (status == SENDER){  //sender
-    ll->sequenceNumber=0;
+    ll.sequenceNumber=0;
     unsigned char *frame = malloc(5);
     build_frame_sup(A, C_SET, frame);
     //ALARM
-    arm_alarm(TIMEOUT_DURATION, TIMEOUT_TRIES);
+    arm_alarm();
     int cnt=0;
     do{
-      if (alm->timeout_flag == 1){
-        alm->timeout_flag = 0;
+      if (alm.timeout_flag == 1){
+        alm.timeout_flag = 0;
         send_frame(frame, fd);
       }
       else if(cnt==0){
@@ -145,9 +142,9 @@ int llopen(const char *port, int status) {
 	}
       sf = state_machine(fd);
       cnt++;
-    } while ((!sf.success || sf.control != C_UA) && alm->count < alm->retries); 
+    } while ((!sf.success || sf.control != C_UA) && alm.count < alm.retries); 
     disarm_alarm();
-    if (alm->count == alm->retries) {
+    if (alm.count == alm.retries) {
       printf("Error: Could not open properly\n");
       free(frame);
       return -1;
@@ -155,7 +152,7 @@ int llopen(const char *port, int status) {
     free(frame);
     return fd;
   } else { //receiver
-    ll->sequenceNumber=0;
+    ll.sequenceNumber=0;
     do {
       sf = state_machine(fd);
     } while (!sf.success || sf.control != C_SET); 
@@ -173,7 +170,7 @@ int llopen(const char *port, int status) {
 int llwrite(int fd, unsigned char *buffer, int length) {
   State_Frame sf;
   unsigned char rr, rej, data;
-  if (ll->sequenceNumber == 0) {
+  if (ll.sequenceNumber == 0) {
     rr = C_RR1;
     rej = C_REJ0;
     data = C_DATA0;
@@ -188,11 +185,11 @@ int llwrite(int fd, unsigned char *buffer, int length) {
 
   //ALARM
   while (1) {
-    arm_alarm(TIMEOUT_DURATION, TIMEOUT_TRIES);
+    arm_alarm();
     int cnt=0;
     do {
-      if (alm->timeout_flag == 1) {
-        alm->timeout_flag = 0;
+      if (alm.timeout_flag == 1) {
+        alm.timeout_flag = 0;
         send_frame(*frame, fd);
       } 
       else if(cnt==0){
@@ -200,14 +197,14 @@ int llwrite(int fd, unsigned char *buffer, int length) {
       }
       sf = state_machine(fd);
       cnt++;
-    } while ((!sf.success || !(sf.control == rr || sf.control == rej)) && alm->count < alm->retries); 
+    } while ((!sf.success || !(sf.control == rr || sf.control == rej)) && alm.count < alm.retries); 
     disarm_alarm();
-    if (alm->count == alm->retries) {
+    if (alm.count == alm.retries) {
       printf("Error: Could not write properly\n");
       free(frame);
       return -1;
     } else if (sf.control == rr) {
-      ll->sequenceNumber = !(ll->sequenceNumber);
+      ll.sequenceNumber = !(ll.sequenceNumber);
       free(frame);
       return size;
     }
@@ -219,7 +216,7 @@ int llread(int fd, unsigned char *buffer) {
   unsigned char *frame = malloc(5);
   unsigned char ns, rr, rej;
 
-  if (ll->sequenceNumber == 0) {
+  if (ll.sequenceNumber == 0) {
     ns = C_DATA0;
     rej = C_REJ0;
     rr = C_RR1;
@@ -240,7 +237,7 @@ int llread(int fd, unsigned char *buffer) {
       send_frame(frame, fd);
       return -4;
     } else if (sf.success == 1 && sf.control == ns) {
-      ll->sequenceNumber = !(ll->sequenceNumber);
+      ll.sequenceNumber = !(ll.sequenceNumber);
       unsigned int i;
       for (i = 0; i < sf.size; i++) {
         buffer[i] = sf.data[i];
@@ -266,21 +263,21 @@ int llclose(int fd, int status) {
   if (status == SENDER) {
 
     //ALARM
-    arm_alarm(TIMEOUT_DURATION, TIMEOUT_TRIES);
-     int cnt=0;
+    arm_alarm();
+    int cnt=0;
     do {
-      if (alm->timeout_flag == 1) {
-        alm->timeout_flag = 0;
+      if (alm.timeout_flag == 1) {
+        alm.timeout_flag = 0;
         send_frame(frame, fd);
       }
       else if(cnt==0){
-	send_frame(frame,fd);
+	      send_frame(frame,fd);
       }
       sf = state_machine(fd);
       cnt++;
-    } while ((!sf.success || sf.control != C_DISC) && alm->count < alm->retries); 
+    } while ((!sf.success || sf.control != C_DISC) && alm.count < alm.retries); 
     disarm_alarm();
-    if (alm->count == alm->retries) {
+    if (alm.count == alm.retries) {
       printf("Error: Could not close properly\n");
       return -1;
     }
@@ -289,21 +286,21 @@ int llclose(int fd, int status) {
     send_frame(frame, fd);
   } else {
     //ALARM
-    arm_alarm(TIMEOUT_DURATION, TIMEOUT_TRIES);
-     int cnt=0;
+    arm_alarm();
+    int cnt=0;
     do {
-      if (alm->timeout_flag == 1) {
-        alm->timeout_flag = 0;
+      if (alm.timeout_flag == 1) {
+        alm.timeout_flag = 0;
         send_frame(frame, fd);
       }
       else if(cnt==0){
-	send_frame(frame,fd);
+	      send_frame(frame,fd);
       }
       sf = state_machine(fd);
       cnt++;
-    } while ((!sf.success || sf.control != C_UA) && alm->count < alm->retries);
+    } while ((!sf.success || sf.control != C_UA) && alm.count < alm.retries);
     disarm_alarm();
-    if (alm->count == alm->retries) {
+    if (alm.count == alm.retries) {
       printf("Error: Could not close properly\n");
       free(frame);
       return -1;

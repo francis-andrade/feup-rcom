@@ -9,20 +9,19 @@
 
 
 #define MAX_SIZE 255
-#define BAUDRATE B38400 //TODO make datalink.c use the struct value
-#define TIMEOUT_DURATION 3
-#define TIMEOUT_TRIES 3
+//#define BAUDRATE B38400 //TODO make datalink.c use the struct value
+//#define TIMEOUT_DURATION 3
+//#define TIMEOUT_TRIES 3
 
 typedef struct{
   char port[20];
   int baudrate;
   unsigned int sequenceNumber;
-  unsigned int timeout;
   unsigned int numTransmissions;
   char frame[MAX_SIZE];
-} linklayer;
+} LinkLayer;
 
-extern linklayer * ll;
+extern LinkLayer ll;
 
 int byte_stuff(unsigned char** buf, int size);
 int byte_destuff(unsigned char** buf, int size);
