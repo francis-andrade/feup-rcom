@@ -9,9 +9,15 @@
 
 
 #define MAX_SIZE 255
+<<<<<<< HEAD
 //#define BAUDRATE B38400 //TODO make datalink.c use the struct value
 //#define TIMEOUT_DURATION 3
 //#define TIMEOUT_TRIES 3
+=======
+#define BAUDRATE B38400 //TODO make datalink.c use the struct value
+#define TIMEOUT_DURATION 3
+#define TIMEOUT_TRIES 4
+>>>>>>> 9d9f685713d3f0a1bf997c71273cb03e9070cb92
 
 typedef struct{
   char port[20];
