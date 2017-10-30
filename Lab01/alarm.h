@@ -13,14 +13,14 @@ typedef struct {
   int status;
 } s_alarm;
 
-extern s_alarm alm;
 
 
-
-void init_alarm(int duration, int retries);
-void arm_alarm();
+void init_alarm();
+void arm_alarm(int duration, int retries);
 void disarm_alarm();
-void deinit_alarm();
+void de_init_alarm();
+
+extern s_alarm * alm;
 
 
 

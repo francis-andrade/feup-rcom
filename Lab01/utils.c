@@ -1,11 +1,11 @@
 #include "utils.h"
 #include "alarm.h"
 #include "datalink.h"
-#include <string.h>
 
+s_alarm *alm;
 
 int build_frame_sup(unsigned char address, unsigned char control, unsigned char *FRAME) {
-  //printf("Entered build_frame_sup() with address=0x%x and control=0x%x\n",address,control);  
+  //printf("Entered build_frame_sup() with address=0x%x and control=0x%x\n",address,control);
   FRAME[0] = FLAG;
   FRAME[1] = address;
   FRAME[2] = control;
@@ -13,7 +13,6 @@ int build_frame_sup(unsigned char address, unsigned char control, unsigned char 
   FRAME[4] = FLAG;
   return 5;
 }
-
 
 int build_frame_data(unsigned char address, unsigned char control, unsigned char **FRAME, unsigned char *PACKET, int length) {
   unsigned char *frame_to_stuff = malloc(length + 1);
@@ -38,13 +37,12 @@ int build_frame_data(unsigned char address, unsigned char control, unsigned char
   (*FRAME)[i + 4] = FLAG;
   //printf("Freeing frame_to_stuff memory...\n");
   free(frame_to_stuff);
-  //printf("Exiting build_frame_data() with newsize=%d\n",new_size);  
+  //printf("Exiting build_frame_data() with newsize=%d\n",new_size);
   return new_size + 5; //tamanho total da trama
 }
 
-
 unsigned char create_BCC(unsigned char *PACKET, int size) {
-  //printf("Entered create_BCC() with size=%d\n",size);  
+  //printf("Entered create_BCC() with size=%d\n",size);
   unsigned char res = 0;
   int i;
   for (i = 0; i < size; i++) {
@@ -54,7 +52,6 @@ unsigned char create_BCC(unsigned char *PACKET, int size) {
   return res;
 }
 
-//I THINK THERE IS A BUG WITH sf.success
 State_Frame state_machine(int fd) {
   unsigned char ch;
   unsigned char * datatmp = (unsigned char *) malloc(255);
@@ -62,10 +59,10 @@ State_Frame state_machine(int fd) {
   int i = 0;
   State_Frame sf;
   sf.success = 1;
-  int curr_count = alm.count;
+  int curr_count = alm->count;
   //printf("Entering state machine cycle\n");
   //run until we reach the frame's end or until being timed-out
-  while (state != S_END && curr_count == alm.count) {
+  while (state != S_END && curr_count == alm->count) {
     if (read(fd, &ch, 1) <= 0)
       continue;
 
@@ -140,40 +137,4 @@ State_Frame state_machine(int fd) {
   }
 
   return sf;
-}
-
-
-int get_baudrate(const char* baudrate_str){
-  if(strcmp("B0",baudrate_str)==0) return 0000000;
-  if(strcmp("B50",baudrate_str)==0) return 0000001;
-  if(strcmp("B75",baudrate_str)==0) return 0000002;
-  if(strcmp("B110",baudrate_str)==0) return 0000003;
-  if(strcmp("B134",baudrate_str)==0) return 0000004;
-  if(strcmp("B150",baudrate_str)==0) return 0000005;
-  if(strcmp("B200",baudrate_str)==0) return 0000006;
-  if(strcmp("B300",baudrate_str)==0) return 0000007;
-  if(strcmp("B600",baudrate_str)==0) return 0000010;
-  if(strcmp("B1200",baudrate_str)==0) return 0000011;
-  if(strcmp("B1800",baudrate_str)==0) return 0000012;
-  if(strcmp("B2400",baudrate_str)==0) return 0000013;
-  if(strcmp("B4800",baudrate_str)==0) return 0000014;
-  if(strcmp("B9600",baudrate_str)==0) return 0000015;
-  if(strcmp("B19200",baudrate_str)==0) return 0000016;
-  if(strcmp("B38400",baudrate_str)==0) return 0000017;
-  if(strcmp("B57600",baudrate_str)==0) return 0010001;
-  if(strcmp("B115200",baudrate_str)==0) return 0010002;
-  if(strcmp("B230400",baudrate_str)==0) return 0010003;
-  if(strcmp("B460800",baudrate_str)==0) return 0010004;
-  if(strcmp("B500000",baudrate_str)==0) return 0010005;
-  if(strcmp("B576000",baudrate_str)==0) return 0010006;
-  if(strcmp("B921600",baudrate_str)==0) return 0010007;
-  if(strcmp("B1000000",baudrate_str)==0) return 0010010;
-  if(strcmp("B1152000",baudrate_str)==0) return 0010011;
-  if(strcmp("B1500000",baudrate_str)==0) return 0010012;
-  if(strcmp("B2000000",baudrate_str)==0) return 0010013;
-  if(strcmp("B2500000",baudrate_str)==0) return 0010014;
-  if(strcmp("B3000000",baudrate_str)==0) return 0010015;
-  if(strcmp("B3500000",baudrate_str)==0) return 0010016;
-  if(strcmp("B4000000",baudrate_str)==0) return 0010017;
-  return -1;
 }

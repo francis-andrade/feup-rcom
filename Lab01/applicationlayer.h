@@ -29,8 +29,8 @@ typedef struct {
 } ApplicationLayer;
 
 
-int sender(const char* port, const int baudrate, const int max_retries, const int timeout, const char* filename);
-int receiver(const char* port, const int baudrate, const int max_retries, const int timeout);
+int sender(const char* port, const char* filename);
+int receiver(const char* port);
 
 int create_control_packet(unsigned char * packet, const char* filename, const unsigned char control, size_t filesize);
 int create_data_packet(int sequence_no, unsigned char *chunk, size_t chunk_size, unsigned char *packet);

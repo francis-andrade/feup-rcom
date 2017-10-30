@@ -1,9 +1,6 @@
 #include "applicationlayer.h"
 #include "datalink.h"
-#include "utils.h"
-#include "alarm.h"
 
-ApplicationLayer app;
 
 int create_data_packet(int sequence_no, unsigned char *chunk, size_t chunk_size, unsigned char *packet){
   // packet header
@@ -53,18 +50,13 @@ int create_control_packet(unsigned char * packet, const char* filename, const un
 }
 
 
-int sender(const char* port, const int baudrate, const int max_retries, const int timeout, const char* filename){
+int sender(const char* port, const char* filename){
   int i, res=0, packet_size=0;
 
   printf("NSerial: Sender\n");
 
-  //init linklayer
-  ll.baudrate = baudrate;
-
-  //init alarm
-  init_alarm(timeout, max_retries);
-
   //init app
+  ApplicationLayer app;
   app.mode = SENDER;
   app.port = (char*)port;
   app.filename = (char*)filename;
@@ -105,7 +97,7 @@ int sender(const char* port, const int baudrate, const int max_retries, const in
     printf("\t[Start-Packet]: llwrite() returned %d. Exiting...\n",res);
     return -1;
   }
-  else 
+  else
     printf("\t[Start-Packet]: Successfully sent.\n");
 
   // send all other packets
@@ -116,7 +108,7 @@ int sender(const char* port, const int baudrate, const int max_retries, const in
     size_t bytes_chunk;
     if (bytes_left>CHUNK_SIZE)
       bytes_chunk = CHUNK_SIZE;
-    else 
+    else
       bytes_chunk = bytes_left;
     //copy bytes from file
     if (fread(chunk, bytes_chunk, 1, fp)<=0)
@@ -133,7 +125,7 @@ int sender(const char* port, const int baudrate, const int max_retries, const in
     bytes_left -= bytes_chunk;
   }
   printf("\tSuccessfully sent all Data-Packets\n");
-  
+
   //send END packet
   packet_size = create_control_packet(packet, app.filename, AL_C_END, app.filesize);
   printf("Sending End-Packet...");
@@ -142,22 +134,22 @@ int sender(const char* port, const int baudrate, const int max_retries, const in
     printf("\t[End-Packet]: llwrite() returned %d. Exiting...\n",res);
     return -1;
   }
-  else 
+  else
     printf("\t[End-Packet]: Successfully sent.\n");
 
   //end runtime
   printf("Attempting to disconnect...\n");
   res = llclose(app.fd, app.mode);
-  if (res==0) 
+  if (res==0)
     printf("\tSuccessfully disconnected.\n");
-  else 
+  else
     printf("\tFailed to disconnect.\n");
   fclose(fp);
   return 0;
 }
 
 
-int receiver(const char* port, const int baudrate, const int max_retries, const int timeout){
+int receiver(const char* port){
   int i, j, res;
   unsigned char buffer[256];  //TODO this 256 should be defined in header
   unsigned char * packet_start=0, * packet_end=0;
@@ -166,13 +158,8 @@ int receiver(const char* port, const int baudrate, const int max_retries, const 
 
   printf("NSerial: Receiver\n");
 
-  //init linklayer
-  ll.baudrate = baudrate;
-
-  //init alarm
-  init_alarm(timeout, max_retries);
-
   //init app
+  ApplicationLayer app;
   app.mode = RECEIVER;
   app.port = (char*)port;
 
@@ -188,14 +175,14 @@ int receiver(const char* port, const int baudrate, const int max_retries, const 
         printf("Failed to open port %s\n",app.port);
         break;
       }
-        
+
       //open temporary file
       if (fp!=0) fclose(fp);
       fp = fopen(TMP_FILENAME, "wb");
       if (fp>0){
         printf("Opened temporary file '%s'\n",TMP_FILENAME);
         state=1;
-        packet_sn=0;
+        packet_sn = 0;
       }
       else {
         printf("Failed to open temporary file '%s'\n",TMP_FILENAME);
@@ -283,7 +270,7 @@ int receiver(const char* port, const int baudrate, const int max_retries, const 
             fclose(fp);
             if (!rename(TMP_FILENAME, app.filename))
               printf("\tSuccessfully transfered %s.\n",app.filename);
-            else 
+            else
               printf("\tError: Failed to change filename of temporary file.\n");
             free(app.filename);
             state=2;
@@ -311,15 +298,15 @@ int receiver(const char* port, const int baudrate, const int max_retries, const 
     break;
 
     // llclose()
-    case 2: 
+    case 2:
       printf("Attempting to disconnect...\n");
       res = llclose(app.fd, app.mode);
-      if (res==0) 
+      if (res==0)
         printf("\tSuccessfully disconnected.\n");
-      else 
+      else
         printf("\tFailed to disconnect.\n");
       if (fp!=0)
-        fclose(fp);     
+        fclose(fp);
       state = 3;
     break;
   };
