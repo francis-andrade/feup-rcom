@@ -18,6 +18,13 @@ int create_data_packet(int sequence_no, unsigned char *chunk, size_t chunk_size,
 }
 
 
+void print_packet(unsigned char * packet, size_t packet_size){
+  int i;
+  for (i=0; i<packet_size; ++i)
+    printf("\t\tpacket[%d] = %x",i,packet[i]);
+}
+
+
 int create_control_packet(unsigned char * packet, const char* filename, const unsigned char control, size_t filesize){
   int i = 0, j;
   packet[i++] = control;
@@ -86,6 +93,7 @@ int sender(const char* port, const char* filename){
   // send START packet (timeouts are accounted for within llwrite, using timeout_flag)
   packet_size = create_control_packet(packet, app.filename, AL_C_START, app.filesize);
   printf("Sending Start-Packet...\n");
+  print_packet(packet,packet_size);
   res = llwrite(app.fd, packet, packet_size);
   if (res<=0){
     printf("\t[Start-Packet]: llwrite() returned %d. Exiting...\n",res);
@@ -180,6 +188,7 @@ int receiver(const char* port){
         // is it a start packet?
           case AL_C_START:
             printf("Reading Start-Packet...\n");
+            print_packet(buffer,res);
             //copy to packet_start
             free(packet_start);
             packet_start_size = res;
