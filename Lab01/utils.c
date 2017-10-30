@@ -20,7 +20,6 @@ int build_frame_data(unsigned char address, unsigned char control, unsigned char
   int i;
   for (i = 0; i < length; i++) {
     frame_to_stuff[i] = PACKET[i];
-    printf("frame_to_stuff(%d) = %X\n",i,frame_to_stuff[i]);
   }
 
   frame_to_stuff[i] = create_BCC(PACKET, length);
@@ -35,7 +34,6 @@ int build_frame_data(unsigned char address, unsigned char control, unsigned char
   //printf("build_frame_data(): Defined the first 4 elements of *FRAME\n");
   for (i = 0; i < new_size; i++) {
     (*FRAME)[i + 4] = frame_to_stuff[i];
-    printf("frame(%d+4) = %x\n",i,(*FRAME)[i+4]);
   }
   (*FRAME)[i + 4] = FLAG;
   //printf("Freeing frame_to_stuff memory...\n");
@@ -125,11 +123,7 @@ State_Frame state_machine(int fd) {
     case S_DN:
       datatmp[i] = ch;
       if (ch == FLAG) {
-        printf("Data frame received. Destuffing frame data...\n");  
-	unsigned int ii;
-	for(ii=0;ii<i;ii++){
-		printf("datatmp[%d]= 0x%x ; ",ii,datatmp[ii]);
-	}      
+        printf("Data frame received. Destuffing frame data...\n");     
         int size = byte_destuff(&datatmp, i);
         if (datatmp[size - 1] == create_BCC(datatmp, size-1)) {
           sf.size = size-1;
