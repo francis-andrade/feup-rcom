@@ -239,7 +239,7 @@ int llread(int fd, unsigned char *buffer) {
 
   while (1) {
     sf = state_machine(fd);
-    printf("%x deve ser %x ou %x\n", sf.control, C_DATA1, C_DATA0);
+    printf("%x deve ser %x\n", sf.control, ns);
     if (sf.success == 1 && sf.control == C_SET){
       free(frame);
       return -2;
