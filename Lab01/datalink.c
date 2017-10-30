@@ -92,10 +92,9 @@ int byte_stuff(unsigned char **buf, int size) {
 int byte_destuff(unsigned char **buf, int size) {
   printf("Entered function byte_destuff\n");
   unsigned char *res;
-  int i, newsize = size;
-  int j = 0;
-  res = (unsigned char *)malloc(newsize);
-  for (i = 0; i < size; i++) {
+  int i, j = 0;
+  res = (unsigned char *)malloc(size);
+  for (i = 0; i < size; i++, j++) {
     if ((*buf)[i] == ESCAPE) {
       i++;
       if ((*buf)[i] == ESCAPE_E)
@@ -103,18 +102,17 @@ int byte_destuff(unsigned char **buf, int size) {
       else if ((*buf)[i] == FLAG_E)
         res[j] = FLAG;
       else{
-	printf("Left function byte_destuff without success\n");
+	      printf("Left function byte_destuff without success\n");
         return -1;
-	}
+	    }
     } else
       res[j] = (*buf)[i];
-    j++;
   }
 
   res = (unsigned char *)realloc(res, j);
   free(*buf);
   *buf = res;
-  printf("Left function byte_destuff with success: *buf= %s\n",*buf);
+  printf("Left function byte_destuff with success: size= %d, *buf= %s\n", j,*buf);
   return j;
 }
 
@@ -261,7 +259,7 @@ int llread(int fd, unsigned char *buffer) {
 	free(frame);
 	return -3;
    }
-  }
+  }         
   free(frame);
   printf("Leaving function llread(), sf.size=%d, sf.control=0x%x, sf.success=%d\n",sf.size, sf.control, sf.success); 
   return sf.size;
