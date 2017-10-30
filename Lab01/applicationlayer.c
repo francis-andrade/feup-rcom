@@ -41,10 +41,9 @@ int create_control_packet(unsigned char * packet, const char* filename, const un
 
   //2nd TLV - filename
   packet[i++] = AL_T_NAME;
-  packet[i++] = strlen(filename);
-
-  for (j=0; j<strlen(filename); ++j, ++i){
-    packet[i] = filename[j];
+  packet[i++] = strlen(filename)+1;
+  for (j=0; j<strlen(filename)+1; ++j, ++i){
+    packet[i] = (unsigned char)(filename[j]);
   }
 
   return i;
@@ -203,7 +202,7 @@ int receiver(const char* port){
                   printf("\t\t[Start-Packet]: Processing filename...\n");
                   app.filename = (char*) malloc(length);
                   for (j=0; j<length; ++j)
-                    app.filename[j] = buffer[i++];
+                    app.filename[j] = (char)(buffer[i++]);
                   printf("\t\t[Start-Packet]: Filename = %s\n",app.filename);
                 break;
 
