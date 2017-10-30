@@ -37,7 +37,7 @@ int build_frame_data(unsigned char address, unsigned char control, unsigned char
     (*FRAME)[i + 4] = frame_to_stuff[i];
     printf("frame(%d+4) = %x\n",i,(*FRAME)[i+4]);
   }
-  (*FRAME)[i + 5] = FLAG;
+  (*FRAME)[i + 4] = FLAG;
   //printf("Freeing frame_to_stuff memory...\n");
   free(frame_to_stuff);
   //printf("Exiting build_frame_data() with newsize=%d\n",new_size);  
