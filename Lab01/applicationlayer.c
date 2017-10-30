@@ -102,15 +102,19 @@ int sender(const char* port, const char* filename){
 
   // send all other packets
   printf("Sending Data-Packets...");
-  for (i=0; fread(chunk, 1, CHUNK_SIZE, fp)>0 ; ++i){ // read a chunk of the file
-    packet_size = create_data_packet(i%256, chunk, CHUNK_SIZE, packet); // i = applayer seqN
+  size_t bytes_left = app.filesize;
+  size_t bytes_chunk = bytes_left%(CHUNK_SIZE+1);
+  for (i=0; fread(chunk, bytes_chunk, 1, fp)>0; ++i){ // read a chunk of the file
+    packet_size = create_data_packet(i%256, chunk, bytes_chunk, packet); // i = applayer seqN
     res = llwrite(app.fd, packet, packet_size);
     if (res<=0){
       printf("\t[Data-Packet %d]: llwrite() returned %d. Exiting...\n",i,res);
       return -1;
     }
-    else 
+    else {
       printf("\t[Data-Packet %d]: Successfully sent.\n",i);
+      bytes_left -= CHUNK_SIZE;
+    }
   }
   printf("\tSuccessfully sent all Data-Packets\n");
   
