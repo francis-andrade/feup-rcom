@@ -60,10 +60,10 @@ int main(int argc, char** argv){
   }
 
   //check for argument sender / receiver
-  if ((strcmp("receiver", argv[4]) == 0)){
+  if ((strcmp("receiver", argv[5]) == 0)){
     return receiver(argv[1], baud, max_retries, timeout);
   }
-  else if ((strcmp("sender", argv[4]) == 0)){
+  else if ((strcmp("sender", argv[5]) == 0)){
     //check for sender's file arg
     if (argc != 7){
       printf("Invalid sender arguments. Needs filename of file to send.\n");
