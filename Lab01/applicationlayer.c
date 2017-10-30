@@ -26,11 +26,11 @@ int create_control_packet(unsigned char * packet, const char* filename, const un
   packet[i++] = AL_T_SIZE;
   packet[i++] = sizeof(size_t);
   size_t temp = filesize;
-
-  for (j=0; j<sizeof(size_t); ++j, ++i){
-    packet[i] = (unsigned char)(temp/256);
-    temp = (unsigned char)(temp%256);
+  for (j=sizeof(size_t)-1; j>=0; --j){
+    packet[i+j] = (unsigned char)(temp%256);
+    temp = (unsigned char)(temp/256);
   }
+  i+=8;
 
   //2nd TLV - filename
   packet[i++] = AL_T_NAME;
