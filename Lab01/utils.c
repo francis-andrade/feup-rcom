@@ -15,7 +15,6 @@ int build_frame_sup(unsigned char address, unsigned char control, unsigned char 
 }
 
 int build_frame_data(unsigned char address, unsigned char control, unsigned char **FRAME, unsigned char *PACKET, int length) {
-  printf("Entered build_frame_data() with address=%c, control=%c and length=%d\n",address,control,length);
   unsigned char *frame_to_stuff = malloc(length + 1);
   int i;
   for (i = 0; i < length; i++) {
@@ -55,8 +54,6 @@ unsigned char create_BCC(unsigned char *PACKET, int size) {
 
 //I THINK THERE IS A BUG WITH sf.success
 State_Frame state_machine(int fd) {
-  printf("Entered state_machine()\n");
-
   unsigned char ch;
   unsigned char * datatmp = (unsigned char *) malloc(255);
   State state = S_START;
@@ -115,7 +112,6 @@ State_Frame state_machine(int fd) {
     case S_BCC1:
       if (ch == FLAG) {
         state = S_END;
-        printf("Supervision frame received.\n");
       } else
         state = S_START;
       break;
@@ -123,14 +119,12 @@ State_Frame state_machine(int fd) {
     case S_DN:
       datatmp[i] = ch;
       if (ch == FLAG) {
-        printf("Data frame received. Destuffing frame data...\n");     
         int size = byte_destuff(&datatmp, i);
         if (datatmp[size - 1] == create_BCC(datatmp, size-1)) {
           sf.size = size-1;
           sf.data = datatmp;
           state = S_END;
         } else {
-          printf("Error with BCC2, exiting state machine\n");
           sf.success = 0;
           return sf;
         }
@@ -143,6 +137,5 @@ State_Frame state_machine(int fd) {
     }
   }
 
-  printf("Exiting state machine...\n");
   return sf;
 }
