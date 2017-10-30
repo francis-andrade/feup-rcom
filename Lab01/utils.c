@@ -124,7 +124,8 @@ State_Frame state_machine(int fd) {
       datatmp[i] = ch;
       if (ch == FLAG) {
         printf("Data frame received. Destuffing frame data...\n");  
-	for(unsigned int ii=0;ii<i;ii++){
+	unsigned int ii;
+	for(ii=0;ii<i;ii++){
 		printf("datatmp[%d]= 0x%x ; ",ii,datatmp[ii]);
 	}      
         int size = byte_destuff(&datatmp, i);
