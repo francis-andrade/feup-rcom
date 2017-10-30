@@ -187,7 +187,7 @@ int receiver(const char* port){
             memcpy(packet_start, buffer, packet_start_size);
             //get filename, filesize, others
             for (i=1; i<res; ){
-              printf("\t[Start-Packet]: Processing new TLV... (%d bytes left)\n",res-i);
+              printf("\t[Start-Packet]: Processing new TLV... (%d bytes left, %x)\n",res-i,buffer[i]);
               unsigned char type = buffer[i++];
               unsigned char length = buffer[i++];
               switch (type){
