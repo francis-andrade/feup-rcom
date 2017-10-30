@@ -133,7 +133,7 @@ int llopen(const char *port, int status) {
     unsigned char *frame = malloc(5);
     build_frame_sup(A, C_SET, frame);
     //ALARM
-    arm_alarm(3, 3);
+    arm_alarm(TIMEOUT_DURATION, TIMEOUT_TRIES);
     do{
       if (alm->timeout_flag == 1){
         alm->timeout_flag = 0;
@@ -183,7 +183,7 @@ int llwrite(int fd, unsigned char *buffer, int length) {
 
   //ALARM
   while (1) {
-    arm_alarm(3, 3);
+    arm_alarm(TIMEOUT_DURATION, TIMEOUT_TRIES);
     do {
       if (alm->timeout_flag == 1) {
         alm->timeout_flag = 0;
@@ -256,7 +256,7 @@ int llclose(int fd, int status) {
   if (status == SENDER) {
 
     //ALARM
-    arm_alarm(3, 3);
+    arm_alarm(TIMEOUT_DURATION, TIMEOUT_TRIES);
     do {
       if (alm->timeout_flag == 1) {
         alm->timeout_flag = 0;
@@ -274,7 +274,7 @@ int llclose(int fd, int status) {
     send_frame(frame, fd);
   } else {
     //ALARM
-    arm_alarm(3, 3);
+    arm_alarm(TIMEOUT_DURATION, TIMEOUT_TRIES);
     do {
       if (alm->timeout_flag == 1) {
         alm->timeout_flag = 0;
