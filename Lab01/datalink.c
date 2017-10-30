@@ -201,6 +201,7 @@ int llwrite(int fd, unsigned char *buffer, int length) {
     do {
       if (alm->timeout_flag == 1) {
         alm->timeout_flag = 0;
+	printf("llwrite: sent data %x\n",data);
         send_frame(*frame, fd);
       } 
       sf = state_machine(fd);
