@@ -123,7 +123,10 @@ State_Frame state_machine(int fd) {
     case S_DN:
       datatmp[i] = ch;
       if (ch == FLAG) {
-        printf("Data frame received. Destuffing frame data...\n");        
+        printf("Data frame received. Destuffing frame data...\n");  
+	for(unsigned int ii=0;ii<i;ii++){
+		printf("datatmp[%d]= 0x%x ; ",ii,datatmp[ii]);
+	}      
         int size = byte_destuff(&datatmp, i);
         if (datatmp[size - 1] == create_BCC(datatmp, size-1)) {
           sf.size = size-1;
