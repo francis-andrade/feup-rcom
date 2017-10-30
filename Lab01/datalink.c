@@ -134,12 +134,17 @@ int llopen(const char *port, int status) {
     build_frame_sup(A, C_SET, frame);
     //ALARM
     arm_alarm(TIMEOUT_DURATION, TIMEOUT_TRIES);
+    int cnt=0;
     do{
       if (alm->timeout_flag == 1){
         alm->timeout_flag = 0;
         send_frame(frame, fd);
       }
+      else if(cnt==0){
+	send_frame(frame, fd);
+	}
       sf = state_machine(fd);
+      cnt++;
     } while ((!sf.success || sf.control != C_UA) && alm->count < alm->retries); 
     disarm_alarm();
     if (alm->count == alm->retries) {
@@ -184,12 +189,17 @@ int llwrite(int fd, unsigned char *buffer, int length) {
   //ALARM
   while (1) {
     arm_alarm(TIMEOUT_DURATION, TIMEOUT_TRIES);
+    int cnt=0;
     do {
       if (alm->timeout_flag == 1) {
         alm->timeout_flag = 0;
         send_frame(*frame, fd);
       } 
+      else if(cnt==0){
+	send_frame(*frame, fd);
+      }
       sf = state_machine(fd);
+      cnt++;
     } while ((!sf.success || !(sf.control == rr || sf.control == rej)) && alm->count < alm->retries); 
     disarm_alarm();
     if (alm->count == alm->retries) {
@@ -257,12 +267,17 @@ int llclose(int fd, int status) {
 
     //ALARM
     arm_alarm(TIMEOUT_DURATION, TIMEOUT_TRIES);
+     int cnt=0;
     do {
       if (alm->timeout_flag == 1) {
         alm->timeout_flag = 0;
         send_frame(frame, fd);
       }
+      else if(cnt==0){
+	send_frame(frame,fd);
+      }
       sf = state_machine(fd);
+      cnt++;
     } while ((!sf.success || sf.control != C_DISC) && alm->count < alm->retries); 
     disarm_alarm();
     if (alm->count == alm->retries) {
@@ -275,12 +290,17 @@ int llclose(int fd, int status) {
   } else {
     //ALARM
     arm_alarm(TIMEOUT_DURATION, TIMEOUT_TRIES);
+     int cnt=0;
     do {
       if (alm->timeout_flag == 1) {
         alm->timeout_flag = 0;
         send_frame(frame, fd);
       }
+      else if(cnt==0){
+	send_frame(frame,fd);
+      }
       sf = state_machine(fd);
+      cnt++;
     } while ((!sf.success || sf.control != C_UA) && alm->count < alm->retries);
     disarm_alarm();
     if (alm->count == alm->retries) {
