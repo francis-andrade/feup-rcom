@@ -221,7 +221,7 @@ int llwrite(int fd, unsigned char *buffer, int length) {
 }
 
 int llread(int fd, unsigned char *buffer) {
-   printf("Entered function llread()\n");
+  printf("Entered function llread()\n");
   State_Frame sf;
   unsigned char *frame = malloc(5);
   unsigned char ns, rr, rej;
@@ -235,6 +235,7 @@ int llread(int fd, unsigned char *buffer) {
     rej = C_REJ1;
     rr = C_RR0;
   }
+  printf("sequenceNumber = %d, ns = %x, rej = %x, rr = %x", ll->sequenceNumber, ns, rej, rr);
 
   while (1) {
     sf = state_machine(fd);
