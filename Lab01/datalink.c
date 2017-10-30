@@ -8,10 +8,8 @@ s_alarm *alm;
 linklayer * ll;
 
 int open_port(const char *destination) {
-  printf("Entered function open_port\n");
   ll=malloc(sizeof(linklayer));
   ll->baudrate=BAUDRATE;
-  printf("Allocated ll\n");
   int fd = open(destination, O_RDWR | O_NOCTTY | O_NONBLOCK);
   if (fd < 0) {
     perror(destination);
@@ -41,12 +39,10 @@ int open_port(const char *destination) {
     perror("tcsetattr");
     exit(-1);
   }
-  printf("Left function open_port\n");
   return fd;
 }
 
 int close_port(int fd) {
-  printf("Entered function close_port\n");
   // reset TC to old config
   if (tcsetattr(fd, TCSANOW, &oldtio) == -1) {
     perror("tcsetattr");
@@ -58,7 +54,6 @@ int close_port(int fd) {
 }
 
 int byte_stuff(unsigned char **buf, int size) {
-  printf("Entered function byte_stuff\n");
   int i, newsize = size;
   unsigned char *res;
 
@@ -85,12 +80,10 @@ int byte_stuff(unsigned char **buf, int size) {
 
   free(*buf);
   *buf = res;
-  printf("Left function byte_stuff *buff= %s\n",*buf);
   return newsize;
 }
 
 int byte_destuff(unsigned char **buf, int size) {
-  printf("Entered function byte_destuff\n");
   unsigned char *res;
   int i, j = 0;
   res = (unsigned char *)malloc(size);
@@ -102,7 +95,6 @@ int byte_destuff(unsigned char **buf, int size) {
       else if ((*buf)[i] == FLAG_E)
         res[j] = FLAG;
       else{
-	      printf("Left function byte_destuff without success\n");
         return -1;
 	    }
     } else
@@ -112,12 +104,10 @@ int byte_destuff(unsigned char **buf, int size) {
   res = (unsigned char *)realloc(res, j);
   free(*buf);
   *buf = res;
-  printf("Left function byte_destuff with success: size= %d, *buf= %s\n", j,*buf);
   return j;
 }
 
 int send_frame(unsigned char *frame, int fd) {
-  printf("Entered function send_frame frame=%s\n", frame);
   int r = 0;
   if (frame[2] == C_DATA0 || frame[2] == C_DATA1){  //data frame
     int i = 1;
@@ -131,17 +121,14 @@ int send_frame(unsigned char *frame, int fd) {
       r = -1;
     }
   }
-  printf("Left function send_frame with success r=%d\n",r);
   return r;
 }
 
 int llopen(const char *port, int status) {
-  printf("Entered function llopen()\n");
   int fd = open_port(port);
   State_Frame sf;
 
   if (status == SENDER){  //sender
-    printf("llopen: sender\n");
     ll->sequenceNumber=0;
     unsigned char *frame = malloc(5);
     build_frame_sup(A, C_SET, frame);
@@ -163,7 +150,6 @@ int llopen(const char *port, int status) {
     free(frame);
     return fd;
   } else { //receiver
-    printf("llopen: receiver\n");
     ll->sequenceNumber=0;
     do {
       sf = state_machine(fd);
@@ -180,7 +166,6 @@ int llopen(const char *port, int status) {
 }
 
 int llwrite(int fd, unsigned char *buffer, int length) {
-   printf("Entered function llwrite() ll->sequenceNumber=%d\n",ll->sequenceNumber);
   State_Frame sf;
   unsigned char rr, rej, data;
   if (ll->sequenceNumber == 0) {
@@ -192,6 +177,7 @@ int llwrite(int fd, unsigned char *buffer, int length) {
     rej = C_REJ1;
     data = C_DATA1;
   }
+
   unsigned char **frame = malloc(sizeof(unsigned char *));
   int size = build_frame_data(A, data, frame, buffer, length);
 
@@ -201,11 +187,10 @@ int llwrite(int fd, unsigned char *buffer, int length) {
     do {
       if (alm->timeout_flag == 1) {
         alm->timeout_flag = 0;
-	printf("llwrite: sent data %x\n",data);
         send_frame(*frame, fd);
       } 
       sf = state_machine(fd);
-    } while ((!sf.success || sf.control != rr || sf.control != rej) && alm->count < alm->retries); 
+    } while ((!sf.success || !(sf.control == rr || sf.control == rej)) && alm->count < alm->retries); 
     disarm_alarm();
     if (alm->count == alm->retries) {
       printf("Error: Could not write properly\n");
@@ -214,14 +199,12 @@ int llwrite(int fd, unsigned char *buffer, int length) {
     } else if (sf.control == rr) {
       ll->sequenceNumber = !(ll->sequenceNumber);
       free(frame);
-      printf("Leaving llwrite()\n");
       return size;
     }
   }
 }
 
 int llread(int fd, unsigned char *buffer) {
-  printf("Entered function llread()\n");
   State_Frame sf;
   unsigned char *frame = malloc(5);
   unsigned char ns, rr, rej;
@@ -235,11 +218,10 @@ int llread(int fd, unsigned char *buffer) {
     rej = C_REJ1;
     rr = C_RR0;
   }
-  printf("sequenceNumber = %d, ns = %x, rej = %x, rr = %x", ll->sequenceNumber, ns, rej, rr);
+  
 
   while (1) {
     sf = state_machine(fd);
-    printf("%x deve ser %x\n", sf.control, ns);
     if (sf.success == 1 && sf.control == C_SET){
       free(frame);
       return -2;
@@ -253,7 +235,6 @@ int llread(int fd, unsigned char *buffer) {
       for (i = 0; i < sf.size; i++) {
         buffer[i] = sf.data[i];
       }
-      printf("sending rr=%x\n",rr);
       build_frame_sup(A, rr, frame);
       send_frame(frame, fd);
       break;
@@ -264,12 +245,10 @@ int llread(int fd, unsigned char *buffer) {
   }
 
   free(frame);
-  printf("Leaving function llread(), sf.size=%d, sf.control=0x%x, sf.success=%d\n",sf.size, sf.control, sf.success); 
   return sf.size;
 }
 
 int llclose(int fd, int status) {
-  printf("Entered function llclose()\n");
   unsigned char *frame = malloc(5);
   State_Frame sf;
   build_frame_sup(A, C_DISC, frame);

@@ -47,7 +47,6 @@ void init_alarm(){
 }
 
 void arm_alarm(int duration, int retries/*, int fd, unsigned char * frame*/){
-  printf("Entered function arm_alarm()\n"); 
   // init flag + statics
   alm->timeout_flag = 0;
   alm->duration = duration;
