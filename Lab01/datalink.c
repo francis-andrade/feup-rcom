@@ -180,7 +180,7 @@ int llopen(const char *port, int status) {
 }
 
 int llwrite(int fd, unsigned char *buffer, int length) {
-   printf("Entered function llwrite()\n");
+   printf("Entered function llwrite() ll->sequenceNumber=%d\n",ll->sequenceNUmber);
   State_Frame sf;
   unsigned char rr, rej, data;
   if (ll->sequenceNumber == 0) {
