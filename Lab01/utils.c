@@ -15,11 +15,12 @@ int build_frame_sup(unsigned char address, unsigned char control, unsigned char 
 }
 
 int build_frame_data(unsigned char address, unsigned char control, unsigned char **FRAME, unsigned char *PACKET, int length) {
-  //printf("Entered build_frame_data() with address=%c, control=%c and length=%d\n",address,control,length);
+  printf("Entered build_frame_data() with address=%c, control=%c and length=%d\n",address,control,length);
   unsigned char *frame_to_stuff = malloc(length + 1);
   int i;
   for (i = 0; i < length; i++) {
     frame_to_stuff[i] = PACKET[i];
+    printf("frame_to_stuff(%d) = %X\n",i,frame_to_stuff[i]);
   }
 
   frame_to_stuff[i] = create_BCC(PACKET, length);
@@ -34,6 +35,7 @@ int build_frame_data(unsigned char address, unsigned char control, unsigned char
   //printf("build_frame_data(): Defined the first 4 elements of *FRAME\n");
   for (i = 0; i < new_size; i++) {
     (*FRAME)[i + 4] = frame_to_stuff[i];
+    printf("frame(%d+4) = %x\n",i,(*FRAME)[i+4]);
   }
   (*FRAME)[i + 5] = FLAG;
   //printf("Freeing frame_to_stuff memory...\n");
