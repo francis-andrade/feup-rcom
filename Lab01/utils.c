@@ -124,9 +124,9 @@ State_Frame state_machine(int fd) {
       datatmp[i] = ch;
       if (ch == FLAG) {
         printf("Data frame received. Destuffing frame data...\n");        
-        byte_destuff(&datatmp, i);
+        int size = byte_destuff(&datatmp, i);
         if (datatmp[i - 1] == create_BCC(datatmp, i-1)) {
-          sf.size = i - 1;
+          sf.size = size-1;
           sf.data = datatmp;
           state = S_END;
         } else {
