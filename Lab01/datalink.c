@@ -122,7 +122,6 @@ int send_frame(unsigned char *frame, int fd) {
   if (frame[2] == C_DATA0 || frame[2] == C_DATA1){  //data frame
     int i = 1;
     while (frame[i] != FLAG){
-      printf("%d,%x\n", i, frame[i]);
       i++;
     }
     if (write(fd, frame, i + 1) == -1)
@@ -195,10 +194,6 @@ int llwrite(int fd, unsigned char *buffer, int length) {
   }
   unsigned char **frame = malloc(sizeof(unsigned char *));
   int size = build_frame_data(A, data, frame, buffer, length);
-  int k;
-  for (k = 0; k < length; k++){
-    printf("f[%d],%x\n", k, frame[k]);
-  }
 
   //ALARM
   int send = 1;
@@ -257,6 +252,7 @@ int llread(int fd, unsigned char *buffer) {
       for (i = 0; i < sf.size; i++) {
         buffer[i] = sf.data[i];
       }
+      printf("sending rr\n");
       build_frame_sup(A, rr, frame);
       send_frame(frame, fd);
       break;
