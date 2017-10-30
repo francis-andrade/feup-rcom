@@ -208,7 +208,7 @@ int llwrite(int fd, unsigned char *buffer, int length) {
     } while ((!sf.success || sf.control != rr || sf.control != rej) && alm->count < alm->retries); 
     disarm_alarm();
     if (alm->count == alm->retries) {
-      printf("Error: Could not open properly\n");
+      printf("Error: Could not write properly\n");
       free(frame);
       return -1;
     } else if (sf.control == rr) {
@@ -239,6 +239,7 @@ int llread(int fd, unsigned char *buffer) {
 
   while (1) {
     sf = state_machine(fd);
+    printf("%x deve ser %x ou %x\n", sf.control, C_DATA1, C_DATA0);
     if (sf.success == 1 && sf.control == C_SET){
       free(frame);
       return -2;
@@ -256,12 +257,12 @@ int llread(int fd, unsigned char *buffer) {
       build_frame_sup(A, rr, frame);
       send_frame(frame, fd);
       break;
+    } else if(sf.success==1 && sf.control == C_DISC){
+	      free(frame);
+	      return -3;
     }
-      else if(sf.success==1 && sf.control == C_DISC){
-	free(frame);
-	return -3;
-   }
-  }         
+  }
+
   free(frame);
   printf("Leaving function llread(), sf.size=%d, sf.control=0x%x, sf.success=%d\n",sf.size, sf.control, sf.success); 
   return sf.size;
