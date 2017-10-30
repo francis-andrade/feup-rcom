@@ -214,6 +214,7 @@ int llwrite(int fd, unsigned char *buffer, int length) {
     } else if (sf.control == rr) {
       ll->sequenceNumber = !(ll->sequenceNumber);
       free(frame);
+      printf("Leaving llwrite()\n");
       return size;
     }
   }
@@ -251,7 +252,7 @@ int llread(int fd, unsigned char *buffer) {
       for (i = 0; i < sf.size; i++) {
         buffer[i] = sf.data[i];
       }
-      printf("sending rr\n");
+      printf("sending rr=%x\n",rr);
       build_frame_sup(A, rr, frame);
       send_frame(frame, fd);
       break;
