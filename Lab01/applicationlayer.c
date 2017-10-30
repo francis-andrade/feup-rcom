@@ -83,7 +83,7 @@ int sender(const char* port, const char* filename){
   fseek(fp, 0, SEEK_END);
   app.filesize = ftell(fp);
   rewind(fp);
-  printf("File '%s' is of size %ld",app.filename, app.filesize);
+  printf("File '%s' is of size %ld bytes\n",app.filename, app.filesize);
 
   // init chunk, packet arrays
   unsigned char chunk[CHUNK_SIZE];
@@ -102,7 +102,7 @@ int sender(const char* port, const char* filename){
 
   // send all other packets
   printf("Sending Data-Packets...");
-  for (i=0; fread(chunk, CHUNK_SIZE, 1, fp)>0 ; ++i){ // read a chunk of the file
+  for (i=0; fread(chunk, 1, CHUNK_SIZE, fp)>0 ; ++i){ // read a chunk of the file
     packet_size = create_data_packet(i%256, chunk, CHUNK_SIZE, packet); // i = applayer seqN
     res = llwrite(app.fd, packet, packet_size);
     if (res<=0){
