@@ -5,7 +5,6 @@
 s_alarm *alm;
 
 int build_frame_sup(unsigned char address, unsigned char control, unsigned char *FRAME) {
-  //printf("Entered build_frame_sup() with address=0x%x and control=0x%x\n",address,control);
   FRAME[0] = FLAG;
   FRAME[1] = address;
   FRAME[2] = control;
@@ -23,26 +22,20 @@ int build_frame_data(unsigned char address, unsigned char control, unsigned char
 
   frame_to_stuff[i] = create_BCC(PACKET, length);
   int new_size = byte_stuff(&frame_to_stuff, length + 1);
-  //printf("build_frame_data(): Reallocating frame memory after byte stuffing...\n");
   *FRAME = malloc(new_size + 5);
-  //printf("build_frame_data(): Reallocated *FRAME\n");
   (*FRAME)[0] = FLAG;
   (*FRAME)[1] = address;
   (*FRAME)[2] = control;
   (*FRAME)[3] = (*FRAME)[1] ^ (*FRAME)[2];
-  //printf("build_frame_data(): Defined the first 4 elements of *FRAME\n");
   for (i = 0; i < new_size; i++) {
     (*FRAME)[i + 4] = frame_to_stuff[i];
   }
   (*FRAME)[i + 4] = FLAG;
-  //printf("Freeing frame_to_stuff memory...\n");
   free(frame_to_stuff);
-  //printf("Exiting build_frame_data() with newsize=%d\n",new_size);
   return new_size + 5; //tamanho total da trama
 }
 
 unsigned char create_BCC(unsigned char *PACKET, int size) {
-  //printf("Entered create_BCC() with size=%d\n",size);
   unsigned char res = 0;
   int i;
   for (i = 0; i < size; i++) {
@@ -60,13 +53,11 @@ State_Frame state_machine(int fd) {
   State_Frame sf;
   sf.success = 1;
   int curr_count = alm->count;
-  //printf("Entering state machine cycle\n");
   //run until we reach the frame's end or until being timed-out
   while (state != S_END && curr_count == alm->count) {
     if (read(fd, &ch, 1) <= 0)
       continue;
 
-    //printf("State=%d\n",state);
     switch (state) {
     case S_START:
       if (ch == FLAG) {

@@ -1,6 +1,3 @@
-#include "alarm.h"
-#include "datalink.h"
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -8,13 +5,8 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
-
-// timeout flag
-//int timeout_flag = 0;
-// durations and tries initialized in arm_alarm()
-
-/*static unsigned char * s_frame;
-static int s_fd;*/
+#include "alarm.h"
+#include "datalink.h"
 
 s_alarm * alm;
 
@@ -23,8 +15,6 @@ void alarm_handler(int signal){
   alm->timeout_flag = 1;
   if (alm->count < alm->retries){
     printf("Timeout! Resending frame..\n");
-    
-    //send_frame(s_frame, s_fd);
     alarm(alm->duration);
   } else {
     
@@ -52,10 +42,6 @@ void arm_alarm(int duration, int retries/*, int fd, unsigned char * frame*/){
   alm->duration = duration;
   alm->retries = retries;
   alm->count = 0;
-  // arm it!
-  /*s_frame=frame;
-  s_fd=fd;
-  send_frame(frame, fd);*/
   alarm(alm->duration);
 }
 

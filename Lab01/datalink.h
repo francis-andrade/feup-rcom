@@ -7,7 +7,6 @@
 #include <termios.h>
 #include <unistd.h>
 
-
 #define MAX_SIZE 255
 #define BAUDRATE B38400
 #define TIMEOUT_DURATION 3

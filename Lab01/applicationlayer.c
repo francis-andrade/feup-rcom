@@ -1,7 +1,6 @@
 #include "applicationlayer.h"
 #include "datalink.h"
 
-
 int create_data_packet(int sequence_no, unsigned char *chunk, size_t chunk_size, unsigned char *packet){
   // packet header
   packet[0] = AL_C_DATA;         // control = 1
@@ -17,13 +16,11 @@ int create_data_packet(int sequence_no, unsigned char *chunk, size_t chunk_size,
   return j;
 }
 
-
 void print_packet(unsigned char * packet, size_t packet_size){
   int i;
   for (i=0; i<packet_size; ++i)
     printf("\t\tpacket[%d] = 0x%x\n",i,packet[i]);
 }
-
 
 int create_control_packet(unsigned char * packet, const char* filename, const unsigned char control, size_t filesize){
   int i = 0, j;
@@ -48,7 +45,6 @@ int create_control_packet(unsigned char * packet, const char* filename, const un
 
   return i;
 }
-
 
 int sender(const char* port, const char* filename){
   int i, res=0, packet_size=0;
@@ -148,10 +144,9 @@ int sender(const char* port, const char* filename){
   return 0;
 }
 
-
 int receiver(const char* port){
   int i, j, res;
-  unsigned char buffer[256];  //TODO this 256 should be defined in header
+  unsigned char buffer[256];
   unsigned char * packet_start=0, * packet_end=0;
   int packet_start_size=0, packet_end_size=0, packet_sn=0;
   FILE *fp = 0;
@@ -165,9 +160,8 @@ int receiver(const char* port){
 
   int state = 0;
   while (state!=3) switch (state){
-    // llopen - le init
+    //initial state (llopen)
     case 0:
-      //open serial bus
       app.fd = llopen(app.port, app.mode);
       if (app.fd>0)
         printf("Successfully opened port %s\n",app.port);
@@ -183,13 +177,12 @@ int receiver(const char* port){
         printf("Opened temporary file '%s'\n",TMP_FILENAME);
         state=1;
         packet_sn = 0;
-      }
-      else {
+      } else {
         printf("Failed to open temporary file '%s'\n",TMP_FILENAME);
       }
     break;
-
-    // llread
+    
+    //llread
     case 1:
       res = llread(app.fd, buffer);
       // res>0 -> success!
@@ -237,7 +230,7 @@ int receiver(const char* port){
             }
             printf("\t[Start-Packet]: Successfully received.\n");
           break;
-        // is it a data packet?
+          // is it a data packet?
           case AL_C_DATA:
             printf("Reading Data-Packet[%d]...\n",packet_sn);
             if (res<5)
@@ -255,7 +248,7 @@ int receiver(const char* port){
               }
             }
           break;
-        // is it an end packet?
+          // is it an end packet?
           case AL_C_END:
             printf("Reading End-Packet...\n");
             //copy to packet_end

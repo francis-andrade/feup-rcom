@@ -116,10 +116,9 @@ int send_frame(unsigned char *frame, int fd) {
     }
     if (write(fd, frame, i + 1) == -1)
       r = -1;
-  } else { //supervision frame
-    if (write(fd, frame, 5)==-1){
+  } else {                                    //supervision frame
+    if (write(fd, frame, 5)==-1)
       r = -1;
-    }
   }
   return r;
 }
@@ -128,21 +127,20 @@ int llopen(const char *port, int status) {
   int fd = open_port(port);
   State_Frame sf;
 
-  if (status == SENDER){  //sender
-    ll->sequenceNumber=0;
+  if (status == SENDER) { //sender
+    ll->sequenceNumber = 0;
     unsigned char *frame = malloc(5);
     build_frame_sup(A, C_SET, frame);
     //ALARM
     arm_alarm(TIMEOUT_DURATION, TIMEOUT_TRIES);
-    int cnt=0;
-    do{
-      if (alm->timeout_flag == 1){
+    int cnt = 0;
+    do {
+      if (alm->timeout_flag == 1) {
         alm->timeout_flag = 0;
         send_frame(frame, fd);
+      } else if (cnt == 0) {
+        send_frame(frame, fd);
       }
-      else if(cnt==0){
-	send_frame(frame, fd);
-	}
       sf = state_machine(fd);
       cnt++;
     } while ((!sf.success || sf.control != C_UA) && alm->count < alm->retries);
@@ -155,7 +153,7 @@ int llopen(const char *port, int status) {
     free(frame);
     return fd;
   } else { //receiver
-    ll->sequenceNumber=0;
+    ll->sequenceNumber = 0;
     do {
       sf = state_machine(fd);
     } while (!sf.success || sf.control != C_SET);
@@ -189,14 +187,13 @@ int llwrite(int fd, unsigned char *buffer, int length) {
   //ALARM
   while (1) {
     arm_alarm(TIMEOUT_DURATION, TIMEOUT_TRIES);
-    int cnt=0;
+    int cnt = 0;
     do {
       if (alm->timeout_flag == 1) {
         alm->timeout_flag = 0;
         send_frame(*frame, fd);
-      }
-      else if(cnt==0){
-	send_frame(*frame, fd);
+      } else if (cnt == 0) {
+        send_frame(*frame, fd);
       }
       sf = state_machine(fd);
       cnt++;
@@ -229,7 +226,6 @@ int llread(int fd, unsigned char *buffer) {
     rr = C_RR0;
   }
 
-
   while (1) {
     sf = state_machine(fd);
     if (sf.success == 1 && sf.control == C_SET){
@@ -259,23 +255,21 @@ int llread(int fd, unsigned char *buffer) {
   return sf.size;
 }
 
-int llclose(int fd, int status) {
+int llclose(int fd, int status){
   unsigned char *frame = malloc(5);
   State_Frame sf;
   build_frame_sup(A, C_DISC, frame);
 
   if (status == SENDER) {
-
     //ALARM
     arm_alarm(TIMEOUT_DURATION, TIMEOUT_TRIES);
-     int cnt=0;
+    int cnt = 0;
     do {
       if (alm->timeout_flag == 1) {
         alm->timeout_flag = 0;
         send_frame(frame, fd);
-      }
-      else if(cnt==0){
-	send_frame(frame,fd);
+      } else if (cnt == 0) {
+        send_frame(frame, fd);
       }
       sf = state_machine(fd);
       cnt++;
@@ -291,13 +285,13 @@ int llclose(int fd, int status) {
   } else {
     //ALARM
     arm_alarm(TIMEOUT_DURATION, TIMEOUT_TRIES);
-     int cnt=0;
+    int cnt = 0;
     do {
       if (alm->timeout_flag == 1) {
         alm->timeout_flag = 0;
         send_frame(frame, fd);
-      } else if(cnt==0){
-	       send_frame(frame,fd);
+      } else if (cnt == 0) {
+        send_frame(frame, fd);
       }
       sf = state_machine(fd);
       cnt++;
