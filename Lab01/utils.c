@@ -56,8 +56,10 @@ State_Frame state_machine(int fd) {
   //run until we reach the frame's end or until being timed-out
   int kkk=1;
   while (state != S_END && curr_count == alm->count) {
-    if (read(fd, &ch, 1) <= 0)
+    if (read(fd, &ch, 1) <= 0){
+      printf("Read failed\n");
       continue;
+    }
     printf("#%d State: %d caracter received: %x\n",kkk,state, ch); 
     kkk++;
     switch (state) {
