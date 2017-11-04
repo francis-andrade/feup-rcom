@@ -238,7 +238,7 @@ int llread(int fd, unsigned char *buffer) {
       free(frame);
       return -2;
     } else if (sf.success == 0 && sf.control == ns) {
-      printf("Frame had errors, sending REJ\n");
+      printf("Frame had errors, sending REJ...\n");
       build_frame_sup(A, rej, frame);
       send_frame(frame, fd);
       return -4;
@@ -256,6 +256,7 @@ int llread(int fd, unsigned char *buffer) {
 	      return -3;
     }
     else if(sf.control==comp_ns){
+      printf("Duplicate Frame sent, asking to send a new one...\n");
       build_frame_sup(A, comp_rr, frame);
       send_frame(frame, fd);
       return -5;
