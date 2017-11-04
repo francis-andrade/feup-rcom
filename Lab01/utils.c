@@ -57,7 +57,6 @@ State_Frame state_machine(int fd) {
   int kkk=1;
   while (state != S_END && curr_count == alm->count) {
     if (read(fd, &ch, 1) <= 0){
-      printf("Read failed\n");
       continue;
     }
     printf("#%d State: %d caracter received: %x\n",kkk,state, ch); 
@@ -130,6 +129,9 @@ State_Frame state_machine(int fd) {
       printf("Leaving state machine inside cycle\n");
       return sf;
     }
+  }
+  if(state!=S_END){
+        sf.success=0;
   }
    printf("Leaving state machine sf.success: %d sf.control: %x\n",sf.success,sf.control);
   return sf;
