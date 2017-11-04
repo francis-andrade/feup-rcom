@@ -280,7 +280,7 @@ int receiver(const char* port){
         state=2;
       }
       // res==-4 -> retry
-      else if (res==-4){
+      else if (res==-4  || res==-5){
         break;
       }
       // res==??? -> undefined behaviour

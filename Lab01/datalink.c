@@ -216,16 +216,20 @@ int llread(int fd, unsigned char *buffer) {
   printf("Entering llread()\n");
   State_Frame sf;
   unsigned char *frame = malloc(5);
-  unsigned char ns, rr, rej;
+  unsigned char ns, rr, rej, comp_ns, comp_rr;
 
   if (ll->sequenceNumber == 0) {
     ns = C_DATA0;
     rej = C_REJ0;
     rr = C_RR1;
+    comp_ns = C_DATA1;
+    comp_rr = C_RR0;
   } else {
     ns = C_DATA1;
     rej = C_REJ1;
     rr = C_RR0;
+    comp_ns = C_DATA0;
+    comp_rr = C_RR1;
   }
 
   while (1) {
@@ -250,6 +254,11 @@ int llread(int fd, unsigned char *buffer) {
     } else if(sf.success==1 && sf.control == C_DISC){
 	      free(frame);
 	      return -3;
+    }
+    else if(sf.control==comp_ns){
+      build_frame_sup(A, comp_rr, frame);
+      send_frame(frame, fd);
+      return -5;
     }
   }
 
