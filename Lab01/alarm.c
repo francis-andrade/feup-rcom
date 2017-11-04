@@ -18,7 +18,7 @@ void alarm_handler(int signal){
     alarm(alm->duration);
   } else {
     
-    printf("Timeout x3! Exiting..\n");
+    printf("Timeout x4! Exiting..\n");
   }
 }
 

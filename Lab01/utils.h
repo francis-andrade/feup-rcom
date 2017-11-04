@@ -25,7 +25,7 @@
 #define PC_END 0x03
 
 typedef enum{
-  S_START, S_FLAG, S_ADDRESS, S_CONTROL, S_BCC1, S_END, S_DN
+  S_START, S_FLAG, S_ADDRESS, S_CONTROL, S_BCC1,  S_DN, S_END
 } State;
 
 typedef struct{

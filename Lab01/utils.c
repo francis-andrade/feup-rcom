@@ -54,10 +54,12 @@ State_Frame state_machine(int fd) {
   sf.success = 1;
   int curr_count = alm->count;
   //run until we reach the frame's end or until being timed-out
+  int kkk=1;
   while (state != S_END && curr_count == alm->count) {
     if (read(fd, &ch, 1) <= 0)
       continue;
-
+    printf("#%d State: %d caracter received: %x\n",kkk,state, ch); 
+    kkk++;
     switch (state) {
     case S_START:
       if (ch == FLAG) {
@@ -123,9 +125,10 @@ State_Frame state_machine(int fd) {
       break;
 
     default:
+      printf("Leaving state machine inside cycle\n");
       return sf;
     }
   }
-
+   printf("Leaving state machine sf.success: %d sf.control: %x\n",sf.success,sf.control);
   return sf;
 }
