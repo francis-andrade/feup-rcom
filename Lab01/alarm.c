@@ -14,7 +14,7 @@ void alarm_handler(int signal){
   alm->count++;
   alm->timeout_flag = 1;
   if (alm->count < alm->retries){
-    printf("Timeout! Resending frame..\n");
+    printf("Timeout #%d! Resending frame..\n",alm->count);
     alarm(alm->duration);
   } else {
     
