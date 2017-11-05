@@ -1,6 +1,27 @@
 #include "applicationlayer.h"
 #include "datalink.h"
 
+int translate_baudrate(int baudr){
+  switch(baudr){
+    case B9600:
+    return 9600;
+    break;
+    case B19200:
+    return 19200;
+    break;
+    case B38400:
+    return 38400;
+    break;
+    case B57600:
+    return 57600;
+    break;
+    case B4800:
+    return 4800;
+    break;
+  }
+  return -1;
+}
+
 int create_data_packet(int sequence_no, unsigned char *chunk, size_t chunk_size, unsigned char *packet){
   // packet header
   packet[0] = AL_C_DATA;         // control = 1
@@ -310,6 +331,11 @@ int receiver(const char* port){
       state = 3;
     break;
   };
+
+  int newbaud = translate_baudrate(stats->baudrate);
+
+  printf("Stats:\n baudrate: %d\n, fer: %d\n, t_prop: %d\n, chunksize: %d \n, R: %d\n, S: %f\n",
+    newbaud, stats->FER, stats->t_prop, stats->chunk_size, stats->R, stats->R/((float) newbaud));
 
   //end runtime
   return 0;
