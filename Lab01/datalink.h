@@ -40,22 +40,25 @@ typedef struct{
   unsigned int sequenceNumber;
   unsigned int timeout;
   unsigned int numTransmissions;
-  char frame[MAX_SIZE];
 } linklayer;
 
+typedef struct{
+  int FER;
+  useconds_t t_prop;
+  int baudrate;
+  int chunk_size;
+} s_stats;
+
+/*
+B9600
+B19200
+B38400
+B57600
+B115200
+*/
+
 extern linklayer * ll;
-
-int byte_stuff(unsigned char** buf, int size);
-int byte_destuff(unsigned char** buf, int size);
-int send_frame(unsigned char* frame, int fd);
-int open_port(const char* destination);
-int close_port(int fd);
-int llopen(const char* port, int status);
-int llclose(int fd, int status);
-int llwrite(int fd, unsigned char* buffer, int length);
-int llread(int fd, unsigned char* buffer);
-
-
+extern s_stats * stats;
 
 
 typedef enum{
@@ -72,6 +75,15 @@ typedef struct{
 
 typedef void (*func_ptr)(void);
 
+int byte_stuff(unsigned char** buf, int size);
+int byte_destuff(unsigned char** buf, int size);
+int send_frame(unsigned char* frame, int fd);
+int open_port(const char* destination);
+int close_port(int fd);
+int llopen(const char* port, int status);
+int llclose(int fd, int status);
+int llwrite(int fd, unsigned char* buffer, int length);
+int llread(int fd, unsigned char* buffer);
 State_Frame state_machine(int fd);
 int build_frame_sup(unsigned char address, unsigned char control, unsigned char * FRAME);
 int build_frame_data(unsigned char address, unsigned char control, unsigned char ** FRAME, unsigned char * PACKET, int length);
