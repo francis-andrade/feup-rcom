@@ -82,6 +82,7 @@ int sender(const char* port, const char* filename){
   printf("File '%s' is of size %ld bytes\n",app.filename, app.filesize);
 
   // init chunk, packet arrays
+  int CHUNK_SIZE = stats->chunk_size;
   unsigned char chunk[CHUNK_SIZE];
   unsigned char packet[CHUNK_SIZE+4];
 
@@ -177,6 +178,9 @@ int receiver(const char* port){
         printf("Opened temporary file '%s'\n",TMP_FILENAME);
         state=1;
         packet_sn = 0;
+        //stats R start
+        stats->R = 0;
+        //stats R end
       } else {
         printf("Failed to open temporary file '%s'\n",TMP_FILENAME);
       }
@@ -187,6 +191,9 @@ int receiver(const char* port){
       res = llread(app.fd, buffer);
       // res>0 -> success!
       if (res>0){
+        //stats R start
+        stats->R += res;
+        //stats R end
         //analyse the control byte
         switch(buffer[0]){
         // is it a start packet?

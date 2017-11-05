@@ -11,7 +11,7 @@
 #define AL_C_END 3
 #define AL_T_SIZE 0
 #define AL_T_NAME 1
-#define CHUNK_SIZE 100
+//#define CHUNK_SIZE 100
 #define TMP_FILENAME "receiving.tmp"
 
 typedef enum{
