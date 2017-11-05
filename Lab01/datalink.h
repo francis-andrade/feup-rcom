@@ -45,19 +45,6 @@ typedef struct{
 
 extern linklayer * ll;
 
-int byte_stuff(unsigned char** buf, int size);
-int byte_destuff(unsigned char** buf, int size);
-int send_frame(unsigned char* frame, int fd);
-int open_port(const char* destination);
-int close_port(int fd);
-int llopen(const char* port, int status);
-int llclose(int fd, int status);
-int llwrite(int fd, unsigned char* buffer, int length);
-int llread(int fd, unsigned char* buffer);
-
-
-
-
 typedef enum{
   S_START, S_FLAG, S_ADDRESS, S_CONTROL, S_BCC1,  S_DN, S_END
 } State;
@@ -72,6 +59,15 @@ typedef struct{
 
 typedef void (*func_ptr)(void);
 
+int byte_stuff(unsigned char** buf, int size);
+int byte_destuff(unsigned char** buf, int size);
+int send_frame(unsigned char* frame, int fd);
+int open_port(const char* destination);
+int close_port(int fd);
+int llopen(const char* port, int status);
+int llclose(int fd, int status);
+int llwrite(int fd, unsigned char* buffer, int length);
+int llread(int fd, unsigned char* buffer);
 State_Frame state_machine(int fd);
 int build_frame_sup(unsigned char address, unsigned char control, unsigned char * FRAME);
 int build_frame_data(unsigned char address, unsigned char control, unsigned char ** FRAME, unsigned char * PACKET, int length);
