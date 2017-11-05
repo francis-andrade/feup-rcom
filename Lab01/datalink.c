@@ -26,13 +26,7 @@ int build_frame_data(unsigned char address, unsigned char control, unsigned char
   }
 
   
-  frame_to_stuff[i] = create_BCC(PACKET, length);
-  
-  //stats FER begin
-  if ((rand()%100)< stats->FER)
-    frame_to_stuff[i] = frame_to_stuff[i] ^ 0xFF;
-  //stats FER end
-  
+  frame_to_stuff[i] = create_BCC(PACKET, length);  
   int new_size = byte_stuff(&frame_to_stuff, length + 1);
   *FRAME = malloc(new_size + 5);
   (*FRAME)[0] = FLAG;
@@ -161,7 +155,8 @@ int open_port(const char *destination) {
 
   //configurating newtio and setting input mode
   bzero(&newtio, sizeof(newtio));
-  newtio.c_cflag = ll->baudrate | CS8 | CLOCAL | CREAD;
+  newtio.c_cflag = stats->baudrate | CS8 | CLOCAL | CREAD; //STATS C
+  //newtio.c_cflag = ll->baudrate | CS8 | CLOCAL | CREAD;
   newtio.c_iflag = IGNPAR;
   newtio.c_oflag = 0;
   newtio.c_lflag = 0;
@@ -237,6 +232,11 @@ int byte_destuff(unsigned char **buf, int size) {
     } else
       res[j] = (*buf)[i];
   }
+
+  //stats FER begin
+  if ((rand()%100)< stats->FER)
+      res[j-1] = res[j-1] ^ 0xFF;
+  //stats FER end
 
   res = (unsigned char *)realloc(res, j);
   free(*buf);
@@ -328,10 +328,10 @@ int llwrite(int fd, unsigned char *buffer, int length) {
     do {
       if (alm->timeout_flag == 1) {
         alm->timeout_flag = 0;
-        sleep(stats->t_prop); //STATS TPROP
+        usleep(stats->t_prop); //STATS TPROP
         send_frame(*frame, fd);
       } else if (cnt == 0) {
-        sleep(stats->t_prop); //STATS TPROP
+        usleep(stats->t_prop); //STATS TPROP
         send_frame(*frame, fd);
       }
       sf = state_machine(fd);
@@ -377,6 +377,7 @@ int llread(int fd, unsigned char *buffer) {
     } else if (sf.success == 0 && sf.control == ns) {
       printf("Frame had errors, sending REJ...\n");
       build_frame_sup(A, rej, frame);
+      usleep(stats->t_prop); //STATS TPROP
       send_frame(frame, fd);
       return -4;
     } else if (sf.success == 1 && sf.control == ns) {
@@ -386,6 +387,7 @@ int llread(int fd, unsigned char *buffer) {
         buffer[i] = sf.data[i];
       }
       build_frame_sup(A, rr, frame);
+      usleep(stats->t_prop); //STATS TPROP
       send_frame(frame, fd);
       break;
     } else if(sf.success==1 && sf.control == C_DISC){
@@ -395,6 +397,7 @@ int llread(int fd, unsigned char *buffer) {
     else if(sf.control==comp_ns){
       printf("Duplicate Frame sent, asking to send a new one...\n");
       build_frame_sup(A, comp_rr, frame);
+      usleep(stats->t_prop); //STATS TPROP
       send_frame(frame, fd);
       return -5;
     }
