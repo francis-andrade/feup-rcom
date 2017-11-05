@@ -40,10 +40,26 @@ typedef struct{
   unsigned int sequenceNumber;
   unsigned int timeout;
   unsigned int numTransmissions;
-  char frame[MAX_SIZE];
 } linklayer;
 
+typedef struct{
+  int FER;
+  useconds_t t_prop;
+  int baudrate;
+  int chunk_size;
+} s_stats;
+
+/*
+B9600
+B19200
+B38400
+B57600
+B115200
+*/
+
 extern linklayer * ll;
+extern s_stats * stats;
+
 
 typedef enum{
   S_START, S_FLAG, S_ADDRESS, S_CONTROL, S_BCC1,  S_DN, S_END

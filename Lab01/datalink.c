@@ -7,6 +7,7 @@ struct termios oldtio, newtio;
 s_alarm *alm;
 linklayer * ll;
 s_alarm *alm;
+s_stats * stats;
 
 int build_frame_sup(unsigned char address, unsigned char control, unsigned char *FRAME) {
   FRAME[0] = FLAG;
@@ -24,7 +25,14 @@ int build_frame_data(unsigned char address, unsigned char control, unsigned char
     frame_to_stuff[i] = PACKET[i];
   }
 
+  
   frame_to_stuff[i] = create_BCC(PACKET, length);
+  
+  //stats FER begin
+  if ((rand()%100)< stats->FER)
+    frame_to_stuff[i] = frame_to_stuff[i] ^ 0xFF;
+  //stats FER end
+  
   int new_size = byte_stuff(&frame_to_stuff, length + 1);
   *FRAME = malloc(new_size + 5);
   (*FRAME)[0] = FLAG;
@@ -135,8 +143,6 @@ State_Frame state_machine(int fd) {
   }
   return sf;
 }
-
-
 
 int open_port(const char *destination) {
   ll=malloc(sizeof(linklayer));
@@ -322,8 +328,10 @@ int llwrite(int fd, unsigned char *buffer, int length) {
     do {
       if (alm->timeout_flag == 1) {
         alm->timeout_flag = 0;
+        sleep(stats->t_prop); //STATS TPROP
         send_frame(*frame, fd);
       } else if (cnt == 0) {
+        sleep(stats->t_prop); //STATS TPROP
         send_frame(*frame, fd);
       }
       sf = state_machine(fd);
