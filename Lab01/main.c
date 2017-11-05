@@ -16,10 +16,10 @@ void print_usage(){
 
 void init_stats(){
   stats=malloc(sizeof(s_stats));
-  stats->FER = 5;
-  stats->t_prop = 10*1000;
-  stats->baudrate = B38400;
-  stats->chunk_size = 100;
+  stats->FER = 50;
+  stats->t_prop = 0*1000;
+  stats->baudrate = B57600;
+  stats->chunk_size = 64;
   stats->bytes_transmitted = 0;
   stats->transmission_start = 0;
   stats->transmission_end = 0;
