@@ -1,6 +1,17 @@
 #include "applicationlayer.h"
 #include "datalink.h"
 
+
+/**
+ * Returns the current time in microseconds.
+ */
+long getMicrotime(){
+  struct timeval currentTime;
+  gettimeofday(&currentTime, NULL);
+  return currentTime.tv_sec * (int)1e6 + currentTime.tv_usec;
+}
+
+
 int translate_baudrate(int baudr){
   switch(baudr){
     case B9600:
@@ -200,7 +211,8 @@ int receiver(const char* port){
         state=1;
         packet_sn = 0;
         //stats R start
-        stats->R = 0;
+        stats->transmission_start = getMicrotime();
+        stats->bytes_transmitted = 0;
         //stats R end
       } else {
         printf("Failed to open temporary file '%s'\n",TMP_FILENAME);
@@ -213,7 +225,7 @@ int receiver(const char* port){
       // res>0 -> success!
       if (res>0){
         //stats R start
-        stats->R += res;
+        stats->bytes_transmitted += res;
         //stats R end
         //analyse the control byte
         switch(buffer[0]){
@@ -278,6 +290,7 @@ int receiver(const char* port){
           break;
           // is it an end packet?
           case AL_C_END:
+            stats->transmission_end = getMicrotime();
             printf("Reading End-Packet...\n");
             //copy to packet_end
             free(packet_end);
@@ -333,9 +346,11 @@ int receiver(const char* port){
   };
 
   int newbaud = translate_baudrate(stats->baudrate);
+  long time_dif = stats->transmission_end - stats->transmission_start;
+  float R = stats->bytes_transmitted*8/((float)time_dif);
 
-  printf("Stats:\n baudrate: %d\n, fer: %d\n, t_prop: %d\n, chunksize: %d \n, R: %d\n, S: %f\n",
-    newbaud, stats->FER, stats->t_prop, stats->chunk_size, stats->R, stats->R/((float) newbaud));
+  printf("Stats:\n baudrate: %d\n, fer: %d\n, t_prop: %d\n, chunksize: %d \n, R: %f\n Time_Elapsed: %ld\n", 
+    newbaud, stats->FER, stats->t_prop, stats->chunk_size, R, time_dif);
 
   //end runtime
   return 0;

@@ -20,7 +20,9 @@ void init_stats(){
   stats->t_prop = 10*1000;
   stats->baudrate = B38400;
   stats->chunk_size = 100;
-  stats->R = 0;
+  stats->bytes_transmitted = 0;
+  stats->transmission_start = 0;
+  stats->transmission_end = 0;
 }
 
 int main(int argc, char** argv){

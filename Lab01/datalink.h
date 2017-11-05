@@ -47,7 +47,9 @@ typedef struct{
   useconds_t t_prop;
   int baudrate;
   int chunk_size;
-  int R;
+  long bytes_transmitted;
+  long transmission_start;
+  long transmission_end;
 } s_stats;
 
 /*

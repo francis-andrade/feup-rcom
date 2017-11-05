@@ -6,6 +6,9 @@
 #include <string.h>
 #include <stddef.h>
 
+#include <sys/time.h>
+
+
 #define AL_C_DATA 1
 #define AL_C_START 2
 #define AL_C_END 3
@@ -25,6 +28,8 @@ typedef struct {
   size_t filesize;
   int fd; 		// file descriptor
 } ApplicationLayer;
+
+long getMicrotime();
 
 int sender(const char* port, const char* filename);
 int receiver(const char* port);
