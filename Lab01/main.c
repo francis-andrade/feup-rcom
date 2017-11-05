@@ -8,12 +8,14 @@
 #include "datalink.h"
 #include "alarm.h"
 
+s_stats * stats;
 
 void print_usage(){
   printf("Usage:\tnserial SerialPort receiver OR nserial SerialPort sender filename \n\tex: nserial /dev/ttyS1 receiver \n\tex: nserial /dev/ttyS0 sender pinguim.gif\n");
 }
 
 void init_stats(){
+  stats=malloc(sizeof(s_stats));
   stats->FER = 5;
   stats->t_prop = 10*1000;
   stats->baudrate = B38400;
