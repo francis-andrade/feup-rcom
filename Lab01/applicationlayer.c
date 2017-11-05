@@ -347,7 +347,7 @@ int receiver(const char* port){
 
   int newbaud = translate_baudrate(stats->baudrate);
   long time_dif = stats->transmission_end - stats->transmission_start;
-  float R = stats->bytes_transmitted*8/((float)time_dif*1000.0);
+  float R = stats->bytes_transmitted*8/((float)time_dif/1000000.0) ;
 
   printf("Stats:\n baudrate: %d\n, fer: %d\n, t_prop: %d\n, chunksize: %d \n, R: %f\n Time_Elapsed: %ld\n", 
     newbaud, stats->FER, stats->t_prop, stats->chunk_size, R, time_dif);
