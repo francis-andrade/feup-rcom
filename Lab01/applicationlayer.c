@@ -1,44 +1,12 @@
 #include "applicationlayer.h"
 #include "datalink.h"
 
-
-/**
- * Returns the current time in microseconds.
- */
-long getMicrotime(){
-  struct timeval currentTime;
-  gettimeofday(&currentTime, NULL);
-  return currentTime.tv_sec * (int)1e6 + currentTime.tv_usec;
-}
-
-
-int translate_baudrate(int baudr){
-  switch(baudr){
-    case B9600:
-    return 9600;
-    break;
-    case B19200:
-    return 19200;
-    break;
-    case B38400:
-    return 38400;
-    break;
-    case B57600:
-    return 57600;
-    break;
-    case B4800:
-    return 4800;
-    break;
-  }
-  return -1;
-}
-
 int create_data_packet(int sequence_no, unsigned char *chunk, size_t chunk_size, unsigned char *packet){
   // packet header
-  packet[0] = AL_C_DATA;         // control = 1
-  packet[1] = sequence_no % 256; // sequencia %255
-  packet[2] = chunk_size / 256;  // l2
-  packet[3] = chunk_size % 256;  // l1
+  packet[0] = AL_C_DATA;         
+  packet[1] = sequence_no % 256; 
+  packet[2] = chunk_size / 256;  
+  packet[3] = chunk_size % 256; 
 
   // packet body
   int i, j = 4;
@@ -114,7 +82,6 @@ int sender(const char* port, const char* filename){
   printf("File '%s' is of size %ld bytes\n",app.filename, app.filesize);
 
   // init chunk, packet arrays
-  int CHUNK_SIZE = stats->chunk_size;
   unsigned char chunk[CHUNK_SIZE];
   unsigned char packet[CHUNK_SIZE+4];
 
@@ -210,10 +177,6 @@ int receiver(const char* port){
         printf("Opened temporary file '%s'\n",TMP_FILENAME);
         state=1;
         packet_sn = 0;
-        //stats R start
-        stats->transmission_start = getMicrotime();
-        stats->bytes_transmitted = 0;
-        //stats R end
       } else {
         printf("Failed to open temporary file '%s'\n",TMP_FILENAME);
       }
@@ -224,9 +187,6 @@ int receiver(const char* port){
       res = llread(app.fd, buffer);
       // res>0 -> success!
       if (res>0){
-        //stats R start
-        stats->bytes_transmitted += res;
-        //stats R end
         //analyse the control byte
         switch(buffer[0]){
         // is it a start packet?
@@ -290,7 +250,6 @@ int receiver(const char* port){
           break;
           // is it an end packet?
           case AL_C_END:
-            stats->transmission_end = getMicrotime();
             printf("Reading End-Packet...\n");
             //copy to packet_end
             free(packet_end);
@@ -344,13 +303,6 @@ int receiver(const char* port){
       state = 3;
     break;
   };
-
-  int newbaud = translate_baudrate(stats->baudrate);
-  long time_dif = stats->transmission_end - stats->transmission_start;
-  float R = stats->bytes_transmitted*8/((float)time_dif/1000000.0) ;
-
-  printf("Stats:\n baudrate: %d\n, fer: %d\n, t_prop: %d\n, chunksize: %d \n, R: %f\n Time_Elapsed: %ld\n", 
-    newbaud, stats->FER, stats->t_prop, stats->chunk_size, R, time_dif);
 
   //end runtime
   return 0;

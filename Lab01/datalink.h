@@ -40,29 +40,10 @@ typedef struct{
   unsigned int sequenceNumber;
   unsigned int timeout;
   unsigned int numTransmissions;
+  char frame[MAX_SIZE];
 } linklayer;
 
-typedef struct{
-  int FER;
-  useconds_t t_prop;
-  int baudrate;
-  int chunk_size;
-  long bytes_transmitted;
-  long transmission_start;
-  long transmission_end;
-} s_stats;
-
-/*
-B9600
-B19200
-B38400
-B57600
-B115200
-*/
-
 extern linklayer * ll;
-extern s_stats * stats;
-
 
 typedef enum{
   S_START, S_FLAG, S_ADDRESS, S_CONTROL, S_BCC1,  S_DN, S_END
@@ -91,7 +72,5 @@ State_Frame state_machine(int fd);
 int build_frame_sup(unsigned char address, unsigned char control, unsigned char * FRAME);
 int build_frame_data(unsigned char address, unsigned char control, unsigned char ** FRAME, unsigned char * PACKET, int length);
 unsigned char create_BCC(unsigned char * PACKET, int size);
-
-
 
 #endif

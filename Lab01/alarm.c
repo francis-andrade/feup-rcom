@@ -36,7 +36,7 @@ void init_alarm(){
   sigaction(SIGALRM, &action, NULL);
 }
 
-void arm_alarm(int duration, int retries/*, int fd, unsigned char * frame*/){
+void arm_alarm(int duration, int retries){
   // init flag + statics
   alm->timeout_flag = 0;
   alm->duration = duration;
