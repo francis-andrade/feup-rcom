@@ -1,7 +1,17 @@
------ tux51 -----
-ip: 172.16.50.1
-mac: 00:0f:fe:8b:e4:a7
++--------------- DADOS ---------------+
+| ..... tux51 ...............         |
+| ip: 172.16.50.1					  |
+| mac: 00:0f:fe:8b:e4:a7			  |
+|									  |
+| ..... tux54 ...............		  |
+| ip: 172.16.50.254					  |
+| mac: 00:21:5a:c3:78:70			  |
++-------------------------------------+
 
------ tux54 -----
-ip: 172.16.50.254
-mac: 00:21:5a:c3:78:70
++------------- PERGUNTAS -------------+
+- What are the ARP packets and what are they used for?
+> O ARP (Address Resolution Protocol) é um protocolo da camada de rede usado para converter um endereço IP num endereço físico.
+Os pacotes ARP são, então usados para mapear endereços de rede a endereços físicos.
+
+- What are the MAC and IP addresses of ARP packets and why?
+> Os
