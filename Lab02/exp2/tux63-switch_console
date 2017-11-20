@@ -1,0 +1,140 @@
+   configure vl  terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+tux-sw6(config)#vlan 60
+tux-sw6(config-vlan)#end
+tux-sw6#
+*Mar  6 23:26:34.380: %SYS-5-CONFIG_I: Configured from console by consoleshow vlan id 60
+
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+60   VLAN0060                         active    Fa0/1, Fa0/23
+
+VLAN Type  SAID       MTU   Parent RingNo BridgeNo Stp  BrdgMode Trans1 Trans2
+---- ----- ---------- ----- ------ ------ -------- ---- -------- ------ ------
+60   enet  100060     1500  -      -      -        -    -        0      0   
+
+Remote SPAN VLAN
+----------------
+Disabled
+
+Primary Secondary Type              Ports
+------- --------- ----------------- ------------------------------------------
+
+tux-sw6#configure termia nal
+Enter configuration commands, one per line.  End with CNTL/Z.
+tux-sw6(config)#interface fastethernet 0/24
+tux-sw6(config-if)#switchport mode access
+tux-sw6(config-if)#switchport acces vla    s vlan 60
+tux-sw6(config-if)#end
+tux-sw6#
+*Mar  6 23:27:20.367: %SYS-5-CONFIG_I: Configured from console by console
+tux-sw6#show running-focn    config interface fastethernet 0/24
+Building configuration...
+
+Current configuration : 85 bytes
+!
+interface FastEthernet0/24
+ switchport access vlan 60
+ switchport mode access
+end
+
+tux-sw6#show interfaces fastethernet 0/24 switchport
+Name: Fa0/24
+Switchport: Enabled
+Administrative Mode: static access
+Operational Mode: down
+Administrative Trunking Encapsulation: negotiate
+Negotiation of Trunking: Off
+Access Mode VLAN: 60 (VLAN0060)
+Trunking Native Mode VLAN: 1 (default)
+Administrative Native VLAN tagging: enabled
+Voice VLAN: none
+Administrative private-vlan host-association: none 
+Administrative private-vlan mapping: none 
+Administrative private-vlan trunk native VLAN: none
+Administrative private-vlan trunk Native VLAN tagging: enabled
+Administrative private-vlan trunk encapsulation: dot1q
+Administrative private-vlan trunk normal VLANs: none
+Administrative private-vlan trunk associations: none
+Administrative private-vlan trunk mappings: none
+Operational private-vlan: none
+Trunking VLANs Enabled: ALL
+Pruning VLANs Enabled: 2-1001
+Capture Mode Disabled
+Capture VLANs Allowed: ALL
+ --More--         
+Protected: false
+Unknown unicast blocked: disabled
+Unknown multicast blocked: disabled
+Appliance trust: none
+tux-sw6#cno  om nfigure termia nal
+Enter configuration commands, one per line.  End with CNTL/Z.
+tux-sw6(config)#vlan 61
+tux-sw6(config-vlan)#intetr      end
+tux-sw6#
+*Mar  6 23:31:12.488: %SYS-5-CONFIG_I: Configured from console by console
+tux-sw6#show vlan id 61
+
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+61   VLAN0061                         active    Fa0/21
+
+VLAN Type  SAID       MTU   Parent RingNo BridgeNo Stp  BrdgMode Trans1 Trans2
+---- ----- ---------- ----- ------ ------ -------- ---- -------- ------ ------
+61   enet  100061     1500  -      -      -        -    -        0      0   
+
+Remote SPAN VLAN
+----------------
+Disabled
+
+Primary Secondary Type              Ports
+------- --------- ----------------- ------------------------------------------
+
+tux-sw6#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+tux-sw6(config)#interface e fastethernet 0/24
+tux-sw6(config-if)#switchport mode access
+tux-sw6(config-if)#swt itchport access vlan y1  61
+tux-sw6(config-if)#end
+tux-sw6#
+*Mar  6 23:36:27.925: %SYS-5-CONFIG_I: Configured from console by console
+tux-sw6#show rinning-f        unning g-config intet rface fastethernet 0/24
+Building configuration...
+
+Current configuration : 85 bytes
+!
+interface FastEthernet0/24
+ switchport access vlan 61
+ switchport mode access
+end
+
+tux-sw6#shw ow interfaces fastethernet 0/24 switchport
+Name: Fa0/24
+Switchport: Enabled
+Administrative Mode: static access
+Operational Mode: down
+Administrative Trunking Encapsulation: negotiate
+Negotiation of Trunking: Off
+Access Mode VLAN: 61 (VLAN0061)
+Trunking Native Mode VLAN: 1 (default)
+Administrative Native VLAN tagging: enabled
+Voice VLAN: none
+Administrative private-vlan host-association: none 
+Administrative private-vlan mapping: none 
+Administrative private-vlan trunk native VLAN: none
+Administrative private-vlan trunk Native VLAN tagging: enabled
+Administrative private-vlan trunk encapsulation: dot1q
+Administrative private-vlan trunk normal VLANs: none
+Administrative private-vlan trunk associations: none
+Administrative private-vlan trunk mappings: none
+Operational private-vlan: none
+Trunking VLANs Enabled: ALL
+Pruning VLANs Enabled: 2-1001
+Capture Mode Disabled
+Capture VLANs Allowed: ALL
+ --More--         
+Protected: false
+Unknown unicast blocked: disabled
+Unknown multicast blocked: disabled
+Appliance trust: none
+tux-sw6#
