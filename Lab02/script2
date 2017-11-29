@@ -1,0 +1,29 @@
+ifconfig eth0 up
+ifconfig eth0 172.16.61.0/24
+route add default gw 172.16.61.1
+
+configure terminal 
+vlan 60
+end
+
+configure terminal
+interface fastethernet 0/1
+switchport mode access
+switchport access vlan 60
+end
+
+configure terminal
+interface fastethernet 0/254
+switchport mode access
+switchport access vlan 60
+end
+
+configure terminal 
+vlan 61
+end
+
+configure terminal
+interface fastethernet 1/1
+switchport mode access
+switchport access vlan 61
+end
