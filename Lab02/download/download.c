@@ -1,191 +1,10 @@
-#include <arpa/inet.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/types.h>
-#include <unistd.h>
-
-#define MAX_SIZE 256
-
-char* concat(const char *s1, const char *s2)
-{
-    char *result = (char*)malloc(strlen(s1)+strlen(s2)+1);//+1 for the null-terminator
-    //in real code you would check for errors in malloc here
-    strcpy(result, s1);
-    strcat(result, s2);
-    return result;
-}
+// includes
+#include <fcntl.h> 
+#include "url.h"
+#include "sockets.h"
 
 
-
-typedef struct {
-	// phase 1
-	char full[MAX_SIZE];
-	// phase 2
-	char user[MAX_SIZE];
-	char pass[MAX_SIZE];
-	char host[MAX_SIZE];
-	char path[MAX_SIZE];
-	char file[MAX_SIZE];
-	// phase 3
-	char ip[MAX_SIZE];
-} url_struct;
-
-
-
-int parse_full_url (const char * full_url, url_struct * url) {
-	// init struct
-	bzero(url->full, MAX_SIZE);
-	bzero(url->user, MAX_SIZE);
-	bzero(url->pass, MAX_SIZE);
-	bzero(url->host, MAX_SIZE);
-	bzero(url->path, MAX_SIZE);
-	bzero(url->ip, MAX_SIZE);
-
-	// get full url 
-	strcpy(url->full, full_url);
-
-	// does the url conform to the 'ftp://' prefix?
-	if (strncmp("ftp://", full_url, 6)!=0){
-		printf("No prefix 'ftp://' found.");
-		return -1;
-	}
-	
-	// does the url contain @? where?
-	char * pos_at = strchr((char*)full_url, '@');
-	char * pos_host = 0;
-	// yep
-	if (pos_at){
-		// where is the colon?
-		char * pos_colon = strchr((char*)(full_url)+6, ':');
-		if (pos_colon==0){
-			printf("No colon separating user:pass found.");
-			return -2;
-		}
-		// get user
-		char * pos_user = (char*)(full_url)+6;
-		int len_user = pos_colon - pos_user;
-		strncpy(url->user, pos_user, len_user);
-		url->user[len_user] = 0;
-		// get pass
-		char * pos_pass = pos_colon + 1;
-		int len_pass = pos_at - pos_pass;
-		strncpy(url->pass, pos_pass, len_pass);
-		url->pass[len_pass] = 0;
-		// set pos_host
-		pos_host = pos_at+1;
-	}
-	// nope
-	else {
-		// fabricate anonymous:anonymous, according to RFC 1738
-		// this is necessary for those URLs in which user:pass is not needed
-		// for more info, consult section 3.2.1 of https://www.rfc-editor.org/rfc/rfc1738.txt
-        strcpy(url->user, "anonymous");
-        strcpy(url->pass, "anonymous");
-        // set pos_host
-        pos_host = (char*)(full_url)+6;
-	}
-
-	// where is the slash?
-	char * pos_slash = strchr(pos_host, '/');
-	
-	// get host
-	strncpy(url->host, pos_host, (pos_slash - pos_host));
-
-	// get path 
-	strcpy(url->path, pos_slash+1);
-
-	// get filename
-	char *filename = url->path;
-	char *next;
-	while (next = strchr(url->path, '/'))
-		filename = next;
-	strcpy(url->file, filename);
-
-	return 0;
-}
-
-
-int getip (url_struct * url) {
-	struct hostent *h;
-	if ((h = gethostbyname(url->host)) == 0) {
-		return 1;
-	}
-
-	strcpy(url->ip, inet_ntoa(*((struct in_addr *)h->h_addr)));
-	return 0;
-}
-
-
-int create_socket (char *ip, int port) {
-	// server address handling
-	struct sockaddr_in server_addr;
-	bzero((char*) &server_addr, sizeof(server_addr));
-	server_addr.sin_family = AF_INET;
-	server_addr.sin_addr.s_addr = inet_addr(ip); /*32 bit Internet address network byte ordered*/
-	server_addr.sin_port = htons(port); /*server TCP port must be network byte ordered */
-
-	// attempt to open socket
-	int socket_fd;
-	if ((socket_fd = socket(AF_INET, SOCK_STREAM, 0))<0) {
-		printf("Failed to open socket.\n");
-		return -1;
-	}
-
-	// attempt connection to server
-	if (connect(socket_fd, (struct sockaddr *) &server_addr, sizeof(server_addr))<0) {
-		printf("Failed to connect to server via new socket.\n");
-		return -2;
-	}
-
-	return socket_fd;
-}
-
-
-int get_code(char * buffer){
-	// filter retcode (all chars up until 'space' char)
-	char * pos_space = strchr(buffer, ' ');
-	int len = pos_space - buffer;
-	buffer[len] = 0;
-	// parse and retrieve retcode
-	return atoi(buffer);
-}
-
-int read_code_socket(int socket_fd){
-	// attempt to read from socket
-	char buffer[MAX_SIZE];
-	bzero(buffer,MAX_SIZE);
-	int len = read(socket_fd, buffer, MAX_SIZE);
-	if (len<=0){
-		printf("Failed to read from socket.");
-		return -2;
-	}
-	buffer[len] = '\0';
-	// get retcode
-	return get_code(buffer);
-}
-
-
-int write_socket(int socket_fd, char * msg){
-	char * msg2 = concat(msg, "\n");
-	int len = strlen(msg2);
-	int retcode = write(socket_fd, msg2, len);
-	free(msg2);
-	if (len == retcode)
-		return 0;
-	else {
-		return -1;
-	}
-}
-
-
-
+//
 int login (int socket_fd, url_struct* url) {
 	int retcode;
 
@@ -216,7 +35,7 @@ int login (int socket_fd, url_struct* url) {
 }
 
 
-
+//
 int pasv (int socket_fd, char * ip, int * port) {
 	// write pasv
 	char msg_pasv[] = "pasv\n";
@@ -274,7 +93,7 @@ int pasv (int socket_fd, char * ip, int * port) {
 }
 
 
-
+//
 int download(int cmd_socket, int data_socket, url_struct * url) { //TODO
 	// 
 	char* msg_retr = concat("retr ",url->path);
@@ -303,7 +122,7 @@ int download(int cmd_socket, int data_socket, url_struct * url) { //TODO
 }
 
 
-
+//
 void print_usage(){
     printf("Usage: download ftp://[<user>:<password>@]<host>/<url-path>\n");
     printf("E.g: download ftp://ei12107:pass123@tom.fe.up.pt/xenotron.jpg\n");
@@ -311,7 +130,7 @@ void print_usage(){
 }
 
 
-
+//
 int main (int argc, char *argv[]) {
     int retcode;
 	
