@@ -15,7 +15,7 @@ int login (int socket_fd, url_struct* url) {
 	}
 	free(msg_user);
 	if ((retcode = read_code_socket(socket_fd))!=331){
-    	printf("Expected code 331. Got %d instead.\n", retcode);
+		printf("Expected code 331. Got %d instead.\n", retcode);
 		return -2;
 	}
 
@@ -26,7 +26,7 @@ int login (int socket_fd, url_struct* url) {
 	}
 	free(msg_pass);
 	if ((retcode = read_code_socket(socket_fd))!=230){
-    	printf("Expected code 230. Got %d instead.\n", retcode);
+		printf("Expected code 230. Got %d instead.\n", retcode);
 		return -4;
 	}
 
@@ -54,7 +54,7 @@ int pasv (int socket_fd, char * ip, int * port) {
 
 	// check retcode
 	if (strncmp(buffer, "227", 3)!=0){
-    	printf("Expected code 227. Got %d instead.\n", get_code(buffer));
+		printf("Expected code 227. Got %d instead.\n", get_code(buffer));
 		return -2;
 	}
 
@@ -103,7 +103,7 @@ int download(int cmd_socket, int data_socket, url_struct * url) { //TODO
 	free(msg_retr);
 	int retcode;
 	if ((retcode = read_code_socket(cmd_socket))!=150){
-    	printf("Expected code 150. Got %d instead.\n", retcode);
+		printf("Expected code 150. Got %d instead.\n", retcode);
 		return -2;
 	}
 
@@ -124,87 +124,87 @@ int download(int cmd_socket, int data_socket, url_struct * url) { //TODO
 
 //
 void print_usage(){
-    printf("Usage: download ftp://[<user>:<password>@]<host>/<url-path>\n");
-    printf("E.g: download ftp://ei12107:pass123@tom.fe.up.pt/xenotron.jpg\n");
-    printf("E.g: download ftp://speedtest.tele2.net/512KB.zip\n");
+	printf("Usage: download ftp://[<user>:<password>@]<host>/<url-path>\n");
+	printf("E.g: download ftp://ei12107:pass123@tom.fe.up.pt/xenotron.jpg\n");
+	printf("E.g: download ftp://speedtest.tele2.net/512KB.zip\n");
 }
 
 
 //
 int main (int argc, char *argv[]) {
-    int retcode;
+	int retcode;
 	
 	// application requires 1 param
 	if (argc != 2) {
 		printf("%s requires 1 parameter to run.\n",argv[0]);
 		print_usage();
-        return 1;
+		return 1;
 	}
 
 	// parse argv1 into all url required parts
-    url_struct url;
-    if ((retcode = parse_full_url(argv[1], &url))!=0){
-    	printf("Failed to parse '%s' into all required URL elements. Error #%d\n", argv[1], retcode);
+	url_struct url;
+	if ((retcode = parse_full_url(argv[1], &url))!=0){
+		printf("Failed to parse '%s' into all required URL elements. Error #%d\n", argv[1], retcode);
 		print_usage();
 		return 2;
-    }
-    printf("USER=%s\nHOST=%s\nPATH=%s\nFILE=%s\n", url.user, url.host, url.path, url.file);
+	}
+	printf("USER=%s\nHOST=%s\nPATH=%s\nFILE=%s\n", url.user, url.host, url.path, url.file);
 
-    // transform host into a ip
-    if ((retcode = getip(&url))!=0){
-    	printf("Failed to transform host into an IP. Error #%d\n", retcode);
+	// transform host into a ip
+	if ((retcode = getip(&url))!=0){
+		printf("Failed to transform host into an IP. Error #%d\n", retcode);
 		return 3;
-    }
-    printf("IP=%s\n", url.ip);
+	}
+	printf("IP=%s\n", url.ip);
 
-    // create command socket
-    int cmd_socket = 0;
-    if ((cmd_socket = create_socket(url.ip, 21))<=0){
-    	printf("Failed to create command socket on %s:21 host into an IP. Error #%d\n", url.ip, cmd_socket);
+	// create command socket
+	int cmd_socket = 0;
+	if ((cmd_socket = create_socket(url.ip, 21))<=0){
+		printf("Failed to create command socket on %s:21 host into an IP. Error #%d\n", url.ip, cmd_socket);
 		return 4;
-    }
-    if ((retcode = read_code_socket(cmd_socket))!=220){
-    	printf("Expected code 220. Got %d instead.\n", retcode);
-	    close(cmd_socket);
+	}
+	if ((retcode = read_code_socket(cmd_socket))!=220){
+		printf("Expected code 220. Got %d instead.\n", retcode);
+		close(cmd_socket);
 		return 5;
-    }
+	}
 
-    // login
-    if ((retcode = login(cmd_socket, &url))!=0){
-    	printf("Failed to login. Error #%d\n", retcode);
-	    close(cmd_socket);
+	// login
+	if ((retcode = login(cmd_socket, &url))!=0){
+		printf("Failed to login. Error #%d\n", retcode);
+		close(cmd_socket);
 		return 6;
-    }
+	}
 
-    // query and get port for data socket
-    char data_ip[MAX_SIZE];
-    int data_port;
-    if ((retcode = pasv(cmd_socket, data_ip, &data_port))!=0){
-    	printf("Failed to pasv. Error #%d\n", retcode);
-	    close(cmd_socket);
+	// query and get port for data socket
+	char data_ip[MAX_SIZE];
+	int data_port;
+	if ((retcode = pasv(cmd_socket, data_ip, &data_port))!=0){
+		printf("Failed to pasv. Error #%d\n", retcode);
+		close(cmd_socket);
 		return 7;
-    }
+	}
 
-    // create another socket to receive file
-    int data_socket=0;
-    if ((data_socket = create_socket(data_ip, data_port))<=0){
-    	printf("Failed to create data socket to receive file. Error #%d\n", data_socket);
-	    close(cmd_socket);
+	// create another socket to receive file
+	int data_socket=0;
+	if ((data_socket = create_socket(data_ip, data_port))<=0){
+		printf("Failed to create data socket to receive file. Error #%d\n", data_socket);
+		close(cmd_socket);
 		return 8;
-    }
+	}
 
-    // download!
-    if ((retcode = download(cmd_socket, data_socket, &url))!=0){
-    	printf("Failed to create another socket to receive file. Error #%d\n", retcode);
-	    close(cmd_socket);
+	// download!
+	if ((retcode = download(cmd_socket, data_socket, &url))!=0){
+		printf("Failed to create another socket to receive file. Error #%d\n", retcode);
+		close(cmd_socket);
 		close(data_socket);
 		return 9;
-    }
+	}
 	printf("Sucessfully downloaded file!\n");
-    
+	
 	// terminate
-    printf("Closing sockets and exiting...\n");
-    close(cmd_socket);
+	printf("Closing sockets and exiting...\n");
+	close(cmd_socket);
 	close(data_socket);
 	return 0;
 }

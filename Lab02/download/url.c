@@ -48,10 +48,10 @@ int parse_full_url (const char * full_url, url_struct * url) {
 		// fabricate anonymous:anonymous, according to RFC 1738
 		// this is necessary for those URLs in which user:pass is not needed
 		// for more info, consult section 3.2.1 of https://www.rfc-editor.org/rfc/rfc1738.txt
-        strcpy(url->user, "anonymous");
-        strcpy(url->pass, "anonymous");
-        // set pos_host
-        pos_host = (char*)(full_url)+6;
+		strcpy(url->user, "anonymous");
+		strcpy(url->pass, "anonymous");
+		// set pos_host
+		pos_host = (char*)(full_url)+6;
 	}
 
 	// where is the slash?
