@@ -28,25 +28,35 @@ int create_socket (char *ip, int port) {
 
 int get_code(char * buffer){
 	// filter retcode (all chars up until 'space' char)
-	char * pos_space = strchr(buffer, ' ');
-	int len = pos_space - buffer;
-	buffer[len] = 0;
+	if (strlen(buffer)>3)
+		buffer[3] = 0;
 	// parse and retrieve retcode
 	return atoi(buffer);
 }
 
+
 int read_code_socket(int socket_fd){
 	// attempt to read from socket
-	char buffer[MAX_SIZE];
-	bzero(buffer,MAX_SIZE);
-	int len = read(socket_fd, buffer, MAX_SIZE);
+	char buffer[5000];
+	bzero(buffer,5000);
+	int len = read(socket_fd, buffer, 5000);
 	if (len<=0){
 		printf("Failed to read from socket.");
 		return -2;
 	}
-	buffer[len] = '\0';
+	//printf("\n\n\n\n%s\n",buffer);
+
+	char *pos_start = buffer;
+	char *next;
+	while ((next = strchr(pos_start,'\n')) > 0){
+		if (strlen(next+1)>0)
+			pos_start = next+1;
+		else 
+			break;
+	}
+	//printf("pos_start=%s",pos_start);
 	// get retcode
-	return get_code(buffer);
+	return get_code(pos_start);
 }
 
 

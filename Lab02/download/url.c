@@ -12,7 +12,6 @@ int parse_full_url (const char * full_url, url_struct * url) {
 
 	// get full url 
 	strcpy(url->full, full_url);
-
 	// does the url conform to the 'ftp://' prefix?
 	if (strncmp("ftp://", full_url, 6)!=0){
 		printf("No prefix 'ftp://' found.");
@@ -56,7 +55,7 @@ int parse_full_url (const char * full_url, url_struct * url) {
 
 	// where is the slash?
 	char * pos_slash = strchr(pos_host, '/');
-	
+
 	// get host
 	strncpy(url->host, pos_host, (pos_slash - pos_host));
 
@@ -65,9 +64,11 @@ int parse_full_url (const char * full_url, url_struct * url) {
 
 	// get filename
 	char *filename = url->path;
-	char *next;
-	while((next = strchr(url->path, '/')))
+	char *next = url->path;
+	while((next = strchr(next, '/'))){
+		next += 1;
 		filename = next;
+	}
 	strcpy(url->file, filename);
 
 	return 0;

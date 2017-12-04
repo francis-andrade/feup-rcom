@@ -14,10 +14,11 @@ int login (int socket_fd, url_struct* url) {
 		return -1;
 	}
 	free(msg_user);
-	if ((retcode = read_code_socket(socket_fd))!=331){
+	while((retcode = read_code_socket(socket_fd))!=331){
 		printf("Expected code 331. Got %d instead.\n", retcode);
-		return -2;
+		//return -2;
 	}
+	printf("Got code %d.\n", retcode);
 
 	// pass
 	char* msg_pass = concat("pass ",url->pass);
@@ -25,10 +26,11 @@ int login (int socket_fd, url_struct* url) {
 		return -3;
 	}
 	free(msg_pass);
-	if ((retcode = read_code_socket(socket_fd))!=230){
+	while((retcode = read_code_socket(socket_fd))!=230){
 		printf("Expected code 230. Got %d instead.\n", retcode);
-		return -4;
+		//return -4;
 	}
+	printf("Got code %d.\n", retcode);
 
 	// success!
 	return 0;
@@ -94,7 +96,7 @@ int pasv (int socket_fd, char * ip, int * port) {
 
 
 //
-int download(int cmd_socket, int data_socket, url_struct * url) { //TODO
+int download(int cmd_socket, int data_socket, url_struct * url) {
 	// 
 	char* msg_retr = concat("retr ",url->path);
 	if (write_socket(cmd_socket, msg_retr)<0){
@@ -102,10 +104,20 @@ int download(int cmd_socket, int data_socket, url_struct * url) { //TODO
 	}
 	free(msg_retr);
 	int retcode;
-	if ((retcode = read_code_socket(cmd_socket))!=150){
+	while((retcode = read_code_socket(cmd_socket))!=150){
 		printf("Expected code 150. Got %d instead.\n", retcode);
-		return -2;
+		// in case of 550, retry?
+		if (retcode==550){
+			msg_retr = concat("retr ",url->path);
+			if (write_socket(cmd_socket, msg_retr)<0){
+				return -1;
+			}
+			free(msg_retr);
+		}
+		sleep(5);
+		//return -2;
 	}
+	printf("Got code %d.\n", retcode);
 
 	// get file descriptor
 	int fd = creat(url->file, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
@@ -127,6 +139,7 @@ void print_usage(){
 	printf("Usage: download ftp://[<user>:<password>@]<host>/<url-path>\n");
 	printf("E.g: download ftp://ei12107:pass123@tom.fe.up.pt/xenotron.jpg\n");
 	printf("E.g: download ftp://speedtest.tele2.net/512KB.zip\n");
+	printf("E.g: download ftp://ftp.up.pt/CPAN/robots.txt\n");
 }
 
 
@@ -163,11 +176,12 @@ int main (int argc, char *argv[]) {
 		printf("Failed to create command socket on %s:21 host into an IP. Error #%d\n", url.ip, cmd_socket);
 		return 4;
 	}
-	if ((retcode = read_code_socket(cmd_socket))!=220){
+	while((retcode = read_code_socket(cmd_socket))!=220){
 		printf("Expected code 220. Got %d instead.\n", retcode);
-		close(cmd_socket);
-		return 5;
+		//close(cmd_socket);
+		//return 5;
 	}
+	printf("Got code %d.\n", retcode);
 
 	// login
 	if ((retcode = login(cmd_socket, &url))!=0){
